@@ -32,7 +32,7 @@
             background-color: #333;
             border-radius: 8px;
         }
-        .phrase p {
+        .phrase p.question {
             font-size: 20px;
             margin: 0;
             color: #fff;
@@ -78,7 +78,7 @@
             color: #fff;
         }
         .copy-btn {
-            margin-top: 10px;
+            margin-top: 20px;
             padding: 10px 15px;
             font-size: 14px;
             color: white;
@@ -99,7 +99,7 @@
 
     <!-- Question 1 -->
     <div class="phrase">
-        <p>Phrase 1 : "La nature est essentielle à la vie."</p>
+        <p class="question">Phrase 1 : "La nature est essentielle à la vie."</p>
         <p class="explanation">Sur une échelle de 1 à 5, indiquez à quel point vous êtes d'accord avec cette affirmation :</p>
         <div class="button-container">
             <button class="note-button" onclick="submitNote(1)">1 - Pas du tout d'accord</button>
@@ -110,7 +110,36 @@
         </div>
     </div>
 
+    <!-- Question 2 -->
+    <div class="phrase">
+        <p class="question">Phrase 2 : "L'art est une forme d'expression indispensable."</p>
+        <p class="explanation">Sur une échelle de 1 à 5, indiquez à quel point vous êtes d'accord avec cette affirmation :</p>
+        <div class="button-container">
+            <button class="note-button" onclick="submitNote(1)">1 - Pas du tout d'accord</button>
+            <button class="note-button" onclick="submitNote(2)">2 - Plutôt pas d'accord</button>
+            <button class="note-button" onclick="submitNote(3)">3 - Ni d'accord ni pas d'accord</button>
+            <button class="note-button" onclick="submitNote(4)">4 - Plutôt d'accord</button>
+            <button class="note-button" onclick="submitNote(5)">5 - Totalement d'accord</button>
+        </div>
+    </div>
+
+    <!-- Question 3 -->
+    <div class="phrase">
+        <p class="question">Phrase 3 : "La technologie nous rapproche les uns des autres."</p>
+        <p class="explanation">Sur une échelle de 1 à 5, indiquez à quel point vous êtes d'accord avec cette affirmation :</p>
+        <div class="button-container">
+            <button class="note-button" onclick="submitNote(1)">1 - Pas du tout d'accord</button>
+            <button class="note-button" onclick="submitNote(2)">2 - Plutôt pas d'accord</button>
+            <button class="note-button" onclick="submitNote(3)">3 - Ni d'accord ni pas d'accord</button>
+            <button class="note-button" onclick="submitNote(4)">4 - Plutôt d'accord</button>
+            <button class="note-button" onclick="submitNote(5)">5 - Totalement d'accord</button>
+        </div>
+    </div>
+
+    <!-- Résumé des réponses -->
     <div id="recap" class="result"></div>
+
+    <!-- Bouton copier -->
     <div class="button-container">
         <button class="copy-btn" id="copyBtn" onclick="copyRecap()">Copier le récapitulatif</button>
     </div>
@@ -120,7 +149,7 @@
     var recapText = "";
 
     function submitNote(note) {
-        var phrase = document.querySelector(".phrase p").textContent;
+        var phrase = document.querySelector(".phrase p.question").textContent;
         recapText += phrase + " => Note : " + note + "\n";
         
         // Afficher le récapitulatif
@@ -131,8 +160,8 @@
             button.disabled = true;
         });
 
-        // Si vous voulez passer à la question suivante, vous pouvez ajouter un bouton ou autre mécanisme.
-        // Par exemple, ici, il est possible d'ajouter un délai avant de passer à la question suivante.
+        // Ajouter une fonctionnalité pour passer à la question suivante si nécessaire.
+        // Par exemple, vous pourriez inclure un bouton pour chaque question pour naviguer entre elles.
     }
 
     function copyRecap() {

@@ -14,7 +14,7 @@
         }
         .container {
             width: 80%;
-            max-width: 900px;
+            max-width: 600px;
             margin: 50px auto;
             background-color: white;
             border-radius: 8px;
@@ -37,21 +37,16 @@
             margin: 0;
             color: #333;
         }
-        .phrase select {
-            width: 100px;
-            padding: 8px;
-            font-size: 16px;
-            margin-top: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #fff;
-            cursor: pointer;
+        .explanation {
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
         }
         .button-container {
             text-align: center;
             margin-top: 20px;
         }
-        button {
+        .note-button {
             padding: 12px 20px;
             font-size: 16px;
             color: white;
@@ -61,7 +56,7 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        button:hover {
+        .note-button:hover {
             background-color: #45a049;
         }
         .result {
@@ -94,44 +89,17 @@
 <div class="container">
     <h1>Évaluation des phrases</h1>
 
+    <!-- Question 1 -->
     <div class="phrase">
         <p>Phrase 1 : "La nature est essentielle à la vie."</p>
-        <label for="note1">Note (1 à 5) :</label>
-        <select id="note1">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-        </select>
-    </div>
-
-    <div class="phrase">
-        <p>Phrase 2 : "Les relations humaines sont nécessaires à l'épanouissement."</p>
-        <label for="note2">Note (1 à 5) :</label>
-        <select id="note2">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-        </select>
-    </div>
-
-    <div class="phrase">
-        <p>Phrase 3 : "La solitude permet de mieux se connaître."</p>
-        <label for="note3">Note (1 à 5) :</label>
-        <select id="note3">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-        </select>
-    </div>
-
-    <div class="button-container">
-        <button onclick="generateRecap()">Générer le récapitulatif</button>
+        <p class="explanation">Sur une échelle de 1 à 5, indiquez à quel point vous êtes d'accord avec cette affirmation :</p>
+        <div class="button-container">
+            <button class="note-button" onclick="submitNote(1)">1 - Pas du tout d'accord</button>
+            <button class="note-button" onclick="submitNote(2)">2 - Plutôt pas d'accord</button>
+            <button class="note-button" onclick="submitNote(3)">3 - Ni d'accord ni pas d'accord</button>
+            <button class="note-button" onclick="submitNote(4)">4 - Plutôt d'accord</button>
+            <button class="note-button" onclick="submitNote(5)">5 - Totalement d'accord</button>
+        </div>
     </div>
 
     <div id="recap" class="result"></div>
@@ -141,21 +109,25 @@
 </div>
 
 <script>
-    function generateRecap() {
-        var note1 = document.getElementById("note1").value;
-        var note2 = document.getElementById("note2").value;
-        var note3 = document.getElementById("note3").value;
+    var recapText = "";
 
-        var recapText = "Récapitulatif des évaluations :\n";
-        recapText += "Phrase 1 : La nature est essentielle à la vie => Note : " + note1 + "\n";
-        recapText += "Phrase 2 : Les relations humaines sont nécessaires à l'épanouissement => Note : " + note2 + "\n";
-        recapText += "Phrase 3 : La solitude permet de mieux se connaître => Note : " + note3 + "\n";
-
+    function submitNote(note) {
+        var phrase = document.querySelector(".phrase p").textContent;
+        recapText += phrase + " => Note : " + note + "\n";
+        
+        // Afficher le récapitulatif
         document.getElementById("recap").textContent = recapText;
+
+        // Cache les boutons de sélection pour la question actuelle
+        document.querySelectorAll(".note-button").forEach(button => {
+            button.disabled = true;
+        });
+
+        // Si vous voulez passer à la question suivante, vous pouvez ajouter un bouton ou autre mécanisme.
+        // Par exemple, ici, il est possible d'ajouter un délai avant de passer à la question suivante.
     }
 
     function copyRecap() {
-        var recapText = document.getElementById("recap").textContent;
         navigator.clipboard.writeText(recapText).then(function() {
             alert("Récapitulatif copié dans le presse-papiers !");
         }, function() {

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Évaluation des phrases</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .phrase {
+            margin-bottom: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #recap {
+            margin-top: 20px;
+            font-family: Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Évaluation des phrases</h1>
+
+<div class="phrase">
+    <p>Phrase 1 : "La nature est essentielle à la vie."</p>
+    <label>Note (1 à 5) :</label>
+    <select id="note1">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+    </select>
+</div>
+
+<div class="phrase">
+    <p>Phrase 2 : "Les relations humaines sont nécessaires à l'épanouissement."</p>
+    <label>Note (1 à 5) :</label>
+    <select id="note2">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+    </select>
+</div>
+
+<div class="phrase">
+    <p>Phrase 3 : "La solitude permet de mieux se connaître."</p>
+    <label>Note (1 à 5) :</label>
+    <select id="note3">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+    </select>
+</div>
+
+<button onclick="generateRecap()">Générer le récapitulatif</button>
+
+<div id="recap" class="result"></div>
+
+<script>
+    function generateRecap() {
+        var note1 = document.getElementById("note1").value;
+        var note2 = document.getElementById("note2").value;
+        var note3 = document.getElementById("note3").value;
+
+        var recapText = "Récapitulatif des évaluations :\n";
+        recapText += "Phrase 1 : La nature est essentielle à la vie => Note : " + note1 + "\n";
+        recapText += "Phrase 2 : Les relations humaines sont nécessaires à l'épanouissement => Note : " + note2 + "\n";
+        recapText += "Phrase 3 : La solitude permet de mieux se connaître => Note : " + note3 + "\n";
+
+        document.getElementById("recap").textContent = recapText;
+    }
+</script>
+
+</body>
+</html>

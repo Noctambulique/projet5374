@@ -147,22 +147,24 @@
 
 <script>
     var recapText = "";
-
+    
+    // Fonction qui soumet la réponse à une question spécifique
     function submitNote(note, questionId) {
-        // Récupérer la phrase de la question et l'ajouter au récapitulatif
+        // Ajouter la réponse au récapitulatif
         var phrase = document.querySelector(`#${questionId} p.question`).textContent;
         recapText += phrase + " => Note : " + note + "\n";
         
         // Afficher le récapitulatif
         document.getElementById("recap").textContent = recapText;
 
-        // Désactiver les boutons de la question actuelle
+        // Désactiver les boutons de la question à laquelle l'utilisateur a répondu
         var buttons = document.querySelectorAll(`#${questionId} .note-button`);
         buttons.forEach(button => {
             button.disabled = true;
         });
     }
 
+    // Fonction pour copier le récapitulatif
     function copyRecap() {
         navigator.clipboard.writeText(recapText).then(function() {
             alert("Récapitulatif copié dans le presse-papiers !");

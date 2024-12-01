@@ -6,77 +6,139 @@
     <title>Évaluation des phrases</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
         }
-        .phrase {
+        .container {
+            width: 80%;
+            max-width: 900px;
+            margin: 50px auto;
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
             margin-bottom: 20px;
         }
-        .result {
-            margin-top: 20px;
-            border: 1px solid #ccc;
+        .phrase {
+            margin-bottom: 30px;
             padding: 10px;
             background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .phrase p {
+            font-size: 18px;
+            margin: 0;
+            color: #333;
+        }
+        .phrase select {
+            width: 100px;
+            padding: 8px;
+            font-size: 16px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
         }
         button {
-            padding: 10px;
-            background-color: #4CAF50;
+            padding: 12px 20px;
+            font-size: 16px;
             color: white;
+            background-color: #4CAF50;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
         button:hover {
             background-color: #45a049;
         }
-        #recap {
-            margin-top: 20px;
-            font-family: Courier, monospace;
+        .result {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .copy-btn {
+            margin-top: 10px;
+            padding: 10px 15px;
+            font-size: 14px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .copy-btn:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
 
-<h1>Évaluation des phrases</h1>
+<div class="container">
+    <h1>Évaluation des phrases</h1>
 
-<div class="phrase">
-    <p>Phrase 1 : "La nature est essentielle à la vie."</p>
-    <label>Note (1 à 5) :</label>
-    <select id="note1">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-    </select>
+    <div class="phrase">
+        <p>Phrase 1 : "La nature est essentielle à la vie."</p>
+        <label for="note1">Note (1 à 5) :</label>
+        <select id="note1">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+    </div>
+
+    <div class="phrase">
+        <p>Phrase 2 : "Les relations humaines sont nécessaires à l'épanouissement."</p>
+        <label for="note2">Note (1 à 5) :</label>
+        <select id="note2">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+    </div>
+
+    <div class="phrase">
+        <p>Phrase 3 : "La solitude permet de mieux se connaître."</p>
+        <label for="note3">Note (1 à 5) :</label>
+        <select id="note3">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+    </div>
+
+    <div class="button-container">
+        <button onclick="generateRecap()">Générer le récapitulatif</button>
+    </div>
+
+    <div id="recap" class="result"></div>
+    <div class="button-container">
+        <button class="copy-btn" id="copyBtn" onclick="copyRecap()">Copier le récapitulatif</button>
+    </div>
 </div>
-
-<div class="phrase">
-    <p>Phrase 2 : "Les relations humaines sont nécessaires à l'épanouissement."</p>
-    <label>Note (1 à 5) :</label>
-    <select id="note2">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-    </select>
-</div>
-
-<div class="phrase">
-    <p>Phrase 3 : "La solitude permet de mieux se connaître."</p>
-    <label>Note (1 à 5) :</label>
-    <select id="note3">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-    </select>
-</div>
-
-<button onclick="generateRecap()">Générer le récapitulatif</button>
-
-<div id="recap" class="result"></div>
 
 <script>
     function generateRecap() {
@@ -90,6 +152,15 @@
         recapText += "Phrase 3 : La solitude permet de mieux se connaître => Note : " + note3 + "\n";
 
         document.getElementById("recap").textContent = recapText;
+    }
+
+    function copyRecap() {
+        var recapText = document.getElementById("recap").textContent;
+        navigator.clipboard.writeText(recapText).then(function() {
+            alert("Récapitulatif copié dans le presse-papiers !");
+        }, function() {
+            alert("Échec de la copie. Essayez à nouveau.");
+        });
     }
 </script>
 

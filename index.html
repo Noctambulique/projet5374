@@ -136,6 +136,33 @@
         </div>
     </div>
 
+    <!-- Question 4 -->
+<div class="phrase" id="question4">
+    <p class="question">Phrase 4 : "La technologie nous rapproche les uns des autres."</p>
+    <p class="explanation">Sur une échelle de 1 à 5, indiquez à quel point vous êtes d'accord avec cette affirmation :</p>
+    <div class="button-container">
+        <button class="note-button" onclick="submitNote(1, 'question4')">1 - Pas du tout d'accord</button>
+        <button class="note-button" onclick="submitNote(2, 'question4')">2 - Plutôt pas d'accord</button>
+        <button class="note-button" onclick="submitNote(3, 'question4')">3 - Ni d'accord ni pas d'accord</button>
+        <button class="note-button" onclick="submitNote(4, 'question4')">4 - Plutôt d'accord</button>
+        <button class="note-button" onclick="submitNote(5, 'question4')">5 - Totalement d'accord</button>
+    </div>
+</div>
+
+    <!-- Question 5 -->
+<div class="phrase" id="question5">
+    <p class="question">Phrase 5 : "La technologie nous rapproche les uns des autres."</p>
+    <p class="explanation">Sur une échelle de 1 à 5, indiquez à quel point vous êtes d'accord avec cette affirmation :</p>
+    <div class="button-container">
+        <button class="note-button" onclick="submitNote(1, 'question5')">1 - Pas du tout d'accord</button>
+        <button class="note-button" onclick="submitNote(2, 'question5')">2 - Plutôt pas d'accord</button>
+        <button class="note-button" onclick="submitNote(3, 'question5')">3 - Ni d'accord ni pas d'accord</button>
+        <button class="note-button" onclick="submitNote(4, 'question5')">4 - Plutôt d'accord</button>
+        <button class="note-button" onclick="submitNote(5, 'question5')">5 - Totalement d'accord</button>
+    </div>
+</div>
+
+    
     <!-- Résumé des réponses -->
     <div id="recap" class="result"></div>
 
@@ -156,11 +183,6 @@
         
         // Afficher le récapitulatif
         document.getElementById("recap").textContent = recapText;
-
-        // Désactiver les boutons de la question à laquelle l'utilisateur a répondu
-        var buttons = document.querySelectorAll(`#${questionId} .note-button`);
-        buttons.forEach(button => {
-            button.disabled = true;
         });
     }
 

@@ -25,7 +25,7 @@
       justify-content: center;
       align-items: center;
       font-size: 24px;
-      border: 1px solid #88aa88; /* limite visuelle faible */
+      border: 1px solid #88aa88; /* très légère */
     }
     .player {
       background-color: #ffe;
@@ -39,16 +39,15 @@
     const grid = document.getElementById('grid');
     const width = 10, height = 10;
     let playerX = 0, playerY = 0;
-    let skin = '🧍';
+    const swimSkins = ['🏊', '🧜', '🦈', '🐬', '🧽'];
+    let currentSkin = '🧍';
 
-    // Objets initiaux
     let objects = {
       lake: [2, 3],
       books: [4, 5],
-      tree: [7, 1]
+      tree: [7, 1],
+      fruit: null // ex: { emoji: '🍊', position: [7,1] }
     };
-
-    let fruit = null; // ex: {x: 5, y: 5, emoji: '🍊'}
 
     function positionKey(x, y) {
       return `${x},${y}`;
@@ -67,6 +66,7 @@
       objects.lake = positions[0];
       objects.books = positions[1];
       objects.tree = positions[2];
+      objects.fruit = null;
     }
 
     function createGrid() {
@@ -75,25 +75,26 @@
         for (let x = 0; x < width; x++) {
           const cell = document.createElement('div');
           cell.className = 'cell';
+          const key = positionKey(x, y);
 
           const [lx, ly] = objects.lake;
           const [bx, by] = objects.books;
           const [tx, ty] = objects.tree;
+          const fruitHere = objects.fruit && x === objects.fruit.x && y === objects.fruit.y;
 
-          const key = positionKey(x, y);
           let content = '';
 
           if (x === playerX && y === playerY) {
-            content = skin;
+            content = currentSkin;
             cell.classList.add('player');
+          } else if (fruitHere) {
+            content = objects.fruit.emoji;
           } else if (x === lx && y === ly) {
             content = '🌊';
           } else if (x === bx && y === by) {
             content = '📚';
           } else if (x === tx && y === ty) {
             content = '🌳';
-          } else if (fruit && x === fruit.x && y === fruit.y) {
-            content = fruit.emoji;
           }
 
           cell.textContent = content;
@@ -113,26 +114,25 @@
         const [bx, by] = objects.books;
         const [tx, ty] = objects.tree;
 
-        // Passage dans l'eau : transformation permanente
+        // Sur le lac : changement de skin
         if (playerX === lx && playerY === ly) {
-          skin = '🏊';
+          const newSkin = swimSkins[Math.floor(Math.random() * swimSkins.length)];
+          currentSkin = newSkin;
         }
 
-        // Bibliothèque : mélanger les objets
+        // Sur la bibliothèque : on mélange les objets (et supprime le fruit)
         if (playerX === bx && playerY === by) {
           shuffleObjects();
         }
 
-        // Arbre : apparition fruit aléatoire
-        if (playerX === tx && playerY === ty) {
+        // Sur l'arbre : apparition ou disparition de fruit
+        const onFruit = objects.fruit && playerX === objects.fruit.x && playerY === objects.fruit.y;
+        if (playerX === tx && playerY === ty && !onFruit) {
           const emoji = Math.random() < 0.5 ? '🍎' : '🍊';
-          let fx, fy, tries = 0;
-          do {
-            fx = Math.floor(Math.random() * width);
-            fy = Math.floor(Math.random() * height);
-            tries++;
-          } while ((fx === playerX && fy === playerY) && tries < 100);
-          fruit = { x: fx, y: fy, emoji };
+          objects.fruit = { x: tx, y: ty, emoji };
+        } else if (onFruit) {
+          // revenir à l’arbre
+          objects.fruit = null;
         }
 
         createGrid();

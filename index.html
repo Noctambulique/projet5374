@@ -29,31 +29,25 @@
       justify-content: center;
       font-size: 10px;
     }
-    .reality {
-      background-color: #b08968;
-    }
-    .thought {
-      background-color: #6a4c93;
-    }
-    .portal {
-      background-color: #ffdd57;
-    }
+    .reality { background-color: #b08968; }
+    .thought { background-color: #6a4c93; }
+    .portal { background-color: #ffdd57; }
+    .boost { background-color: #00ffaa; }
+    .obstacle { background-color: #222; }
     .player {
       background-color: white;
       color: black;
       font-weight: bold;
     }
-    .info {
-      margin-top: 10px;
-    }
+    .info { margin-top: 10px; }
   </style>
 </head>
 <body>
   <h1>🎮 Résonance</h1>
-  <p class="info">Déplacement : Flèches | Changer de monde : Espace | Intensité (C) | Interagir (E)</p>
+  <p class="info">Flèches : se déplacer | Espace : changer de monde | C : intensité | E : interaction</p>
   <div id="game"></div>
   <div class="info">
-    Monde : <span id="world">Réalité</span> | Intensité : <span id="intensity">0</span> | Distance : <span id="distance">5</span>
+    Monde : <span id="world">Réalité</span> | Intensité : <span id="intensity">0</span> | Distance : <span id="distance">5</span> | Classe : <span id="classe">Être flou</span>
   </div>
   <script>
     const gridSize = 10;
@@ -61,20 +55,35 @@
     const worldLabel = document.getElementById('world');
     const intensityLabel = document.getElementById('intensity');
     const distanceLabel = document.getElementById('distance');
+    const classeLabel = document.getElementById('classe');
 
     let world = 'reality';
     let intensity = 0;
     let distance = 5;
+    let force = 0;
 
     const map = {
       reality: Array(gridSize * gridSize).fill('reality'),
       thought: Array(gridSize * gridSize).fill('thought')
     };
 
+    // Objets spéciaux
     map.reality[22] = 'portal';
     map.thought[77] = 'portal';
+    map.reality[13] = 'boost';
+    map.reality[45] = 'obstacle';
+    map.reality[46] = 'obstacle';
+    map.reality[65] = 'boost';
 
     let playerPosition = 0;
+
+    function getClasse(intensity, force, distance) {
+      if (intensity < 3 && force < 3 && distance > 4) return 'Être flou';
+      if (intensity >= 3 && force >= 3 && distance <= 2) return 'Prophète';
+      if (intensity >= 4 && distance <= 2) return 'Oracle';
+      if (force >= 4 && distance <= 2) return 'Détective';
+      return 'Tacticien';
+    }
 
     function drawMap() {
       game.innerHTML = '';
@@ -88,6 +97,7 @@
       worldLabel.textContent = world === 'reality' ? 'Réalité' : 'Pensée';
       intensityLabel.textContent = intensity;
       distanceLabel.textContent = distance;
+      classeLabel.textContent = getClasse(intensity, force, distance);
     }
 
     function movePlayer(dx, dy) {
@@ -97,10 +107,10 @@
       const newY = y + dy;
       if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
         const nextPos = newY * gridSize + newX;
-        if (world === 'reality' && map.reality[nextPos] !== 'wall') {
+        const tile = map[world][nextPos];
+        if (tile !== 'obstacle') {
           playerPosition = nextPos;
-        } else if (world === 'thought') {
-          playerPosition = nextPos;
+          if (tile === 'boost') force++;
         }
         drawMap();
       }
@@ -114,16 +124,16 @@
     }
 
     function increaseIntensity() {
-      intensity += 1;
-      if (distance > 0) distance -= 1;
+      intensity++;
+      if (distance > 0) distance--;
       drawMap();
     }
 
     function interact() {
-      if (map[world][playerPosition] === 'portal') {
-        changeWorld();
-      } else {
-        intensity += 1;
+      const tile = map[world][playerPosition];
+      if (tile === 'portal') changeWorld();
+      else if (tile === 'boost') {
+        force++;
         drawMap();
       }
     }

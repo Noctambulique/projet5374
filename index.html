@@ -3,212 +3,179 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sortir de la Caverne - Jeu philosophique</title>
+  <title>Résonance</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: radial-gradient(ellipse at center, #000000 0%, #1a1a1a 100%);
-      color: white;
+      background: #111;
+      font-family: monospace;
       overflow: hidden;
+      color: white;
     }
     #game {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      background: url('https://www.transparenttextures.com/patterns/dark-mosaic.png');
+      display: grid;
+      grid-template-columns: repeat(10, 40px);
+      grid-template-rows: repeat(10, 40px);
+      gap: 1px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
-    .tile {
+    .cell {
       width: 40px;
       height: 40px;
-      position: absolute;
-      border: 1px solid rgba(255,255,255,0.05);
-      box-sizing: border-box;
-      transition: background-color 0.3s;
-    }
-    .wall { background-color: #333; }
-    .floor { background-color: #111; }
-    .exit { background-color: #0c0; }
-    .questionTile { background-color: #0055aa; }
-    #character {
-      width: 30px;
-      height: 30px;
-      background-color: white;
-      border-radius: 50%;
-      position: absolute;
-      z-index: 10;
-      box-shadow: 0 0 8px white;
-    }
-    #questionBox {
-      position: absolute;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: rgba(0, 0, 0, 0.9);
-      border: 2px solid #aaa;
-      padding: 20px;
-      width: 60%;
-      border-radius: 10px;
-      display: none;
-      z-index: 20;
-      box-shadow: 0 0 15px #222;
-    }
-    .choice {
-      background-color: #222;
-      padding: 10px;
-      margin: 10px;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s, transform 0.2s;
-    }
-    .choice:hover {
       background-color: #444;
-      transform: scale(1.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      transition: background-color 0.2s;
+    }
+    .player { background-color: #0cf; }
+    .wall { background-color: #222; }
+    .portal { background-color: purple; }
+    .tree { background-color: green; }
+    .fruit { background-color: orange; }
+    .book { background-color: gold; }
+    .grave { background-color: darkred; }
+    .water { background-color: #07f; }
+    #ui {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <div id="game">
-    <div id="character"></div>
-    <div id="questionBox">
-      <p id="questionText"></p>
-      <div id="choiceContainer"></div>
-    </div>
-  </div>
-  <script>
-    const map = [
-      "WWWWWWWWWW",
-      "W........W",
-      "W..Q.....W",
-      "W..W.....W",
-      "W..W..E..W",
-      "W..W.....W",
-      "W..Q.....W",
-      "W........W",
-      "WWWWWWWWWW"
-    ];
-
-    const TILE_SIZE = 40;
-    const character = document.getElementById("character");
-    const game = document.getElementById("game");
-    const questionBox = document.getElementById("questionBox");
-    const questionText = document.getElementById("questionText");
-    const choiceContainer = document.getElementById("choiceContainer");
-
-    let playerX = 1;
-    let playerY = 1;
-    let currentStep = 0;
-    let inQuestion = false;
-    let steps = 0;
-    const maxSteps = 50;
-
-    const questions = [
-      {
-        question: "Quelle est la vraie source du savoir ?",
-        choices: [
-          { text: "Ce que mes yeux voient", correct: false },
-          { text: "Ce que la raison saisit", correct: true }
-        ]
-      },
-      {
-        question: "Le monde visible est-il...",
-        choices: [
-          { text: "Le monde véritable", correct: false },
-          { text: "Une copie du vrai monde", correct: true }
-        ]
-      },
-      {
-        question: "Pourquoi le philosophe revient-il dans la caverne ?",
-        choices: [
-          { text: "Par nostalgie", correct: false },
-          { text: "Par devoir envers les autres", correct: true }
-        ]
-      }
-    ];
-
-    function drawMap() {
-      for (let y = 0; y < map.length; y++) {
-        for (let x = 0; x < map[y].length; x++) {
-          const tile = document.createElement("div");
-          tile.classList.add("tile");
-          tile.style.left = x * TILE_SIZE + "px";
-          tile.style.top = y * TILE_SIZE + "px";
-          const type = map[y][x];
-          if (type === "W") tile.classList.add("wall");
-          else if (type === "E") tile.classList.add("exit");
-          else if (type === "Q") tile.classList.add("questionTile");
-          else tile.classList.add("floor");
-          game.appendChild(tile);
-        }
-      }
+<div id="ui">
+  Monde : <span id="worldDisplay">Réalité</span><br>
+  Skin : <span id="skinDisplay">🧍</span><br>
+  Journal : <span id="log"></span>
+</div>
+<div id="game"></div>
+<script>
+const gridSize = 10;
+const game = document.getElementById("game");
+const worldDisplay = document.getElementById("worldDisplay");
+const skinDisplay = document.getElementById("skinDisplay");
+const log = document.getElementById("log");
+let world = "reality";
+let player = { x: 1, y: 1, skin: "🧍" };
+const items = {};
+function randomCell() {
+  const r = Math.random();
+  if (r < 0.05) return { type: "wall" };
+  if (r < 0.08) return { type: "tree" };
+  if (r < 0.1) return { type: "book" };
+  if (r < 0.12) return { type: "water" };
+  return { type: "empty" };
+}
+let map = [];
+function generateMap() {
+  map = [];
+  for (let y = 0; y < gridSize; y++) {
+    map[y] = [];
+    for (let x = 0; x < gridSize; x++) {
+      map[y][x] = randomCell();
     }
-
-    function updateCharacterPosition() {
-      character.style.left = playerX * TILE_SIZE + "px";
-      character.style.top = playerY * TILE_SIZE + "px";
-    }
-
-    function showQuestionBox(q) {
-      inQuestion = true;
-      questionBox.style.display = "block";
-      questionText.textContent = q.question;
-      choiceContainer.innerHTML = "";
-      q.choices.forEach(choice => {
-        const btn = document.createElement("div");
-        btn.classList.add("choice");
-        btn.textContent = choice.text;
-        btn.onclick = () => handleAnswer(choice.correct);
-        choiceContainer.appendChild(btn);
-      });
-    }
-
-    function handleAnswer(correct) {
-      if (correct) {
-        questionBox.style.display = "none";
-        inQuestion = false;
-        currentStep++;
+  }
+  map[1][1] = { type: "empty" };
+  map[2][2] = { type: "portal" };
+  map[3][3] = { type: "tree" };
+  map[4][4] = { type: "book" };
+  map[5][5] = { type: "water" };
+}
+generateMap();
+function updateUI() {
+  worldDisplay.textContent = world === "reality" ? "Réalité" : "Pensée";
+  skinDisplay.textContent = player.skin;
+}
+function logEvent(msg) {
+  log.textContent = msg;
+  setTimeout(() => log.textContent = "", 2000);
+}
+function render() {
+  game.innerHTML = "";
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+      const div = document.createElement("div");
+      div.className = "cell";
+      const cell = map[y][x];
+      if (x === player.x && y === player.y) {
+        div.classList.add("player");
+        div.textContent = player.skin;
       } else {
-        alert("Erreur ! Tu restes dans l'ombre.");
-        location.reload();
+        if (cell.type !== "empty") div.classList.add(cell.type);
+        if (cell.type === "tree") div.textContent = "🌳";
+        if (cell.type === "book") div.textContent = "📚";
+        if (cell.type === "portal") div.textContent = "🌀";
+        if (cell.type === "grave") div.textContent = "🪦";
+        if (cell.type === "water") div.textContent = "🌊";
+        if (cell.type === "fruit") div.textContent = "🍊";
       }
+      game.appendChild(div);
     }
-
-    function checkTileInteraction() {
-      const tile = map[playerY][playerX];
-      if (tile === "Q" && currentStep < questions.length) {
-        showQuestionBox(questions[currentStep]);
-      }
-      if (tile === "E" && currentStep >= questions.length) {
-        alert("☀️ Tu as vu l'idée du Bien ! Tu es sorti de la caverne.");
-        location.reload();
-      }
+  }
+  updateUI();
+}
+function move(dx, dy) {
+  const nx = player.x + dx;
+  const ny = player.y + dy;
+  if (nx < 0 || ny < 0 || nx >= gridSize || ny >= gridSize) return;
+  const dest = map[ny][nx];
+  if (dest.type === "wall") {
+    logEvent("Mur infranchissable.");
+    return;
+  }
+  if (dest.type === "grave") {
+    alert("Fin de la partie : vous avez marché sur une tombe.");
+    location.reload();
+  }
+  if (dest.type === "portal") {
+    world = (world === "reality") ? "thought" : "reality";
+    logEvent("Changement de monde.");
+    generateMap();
+  }
+  if (dest.type === "tree") {
+    map[ny][nx] = { type: items[`${nx},${ny}`] === "fruit" ? "tree" : "fruit" };
+    items[`${nx},${ny}`] = map[ny][nx].type;
+    logEvent(map[ny][nx].type === "fruit" ? "Un fruit est apparu." : "L'arbre renaît.");
+  }
+  if (dest.type === "fruit") {
+    map[ny][nx] = { type: "tree" };
+    items[`${nx},${ny}`] = "tree";
+    logEvent("Vous avez cueilli un fruit.");
+  }
+  if (dest.type === "book") {
+    for (let i = 0; i < 3; i++) {
+      const rx = Math.floor(Math.random() * gridSize);
+      const ry = Math.floor(Math.random() * gridSize);
+      if (map[ry][rx].type === "empty") map[ry][rx] = { type: "grave" };
     }
-
-    document.addEventListener("keydown", (e) => {
-      if (inQuestion) return;
-      let nextX = playerX;
-      let nextY = playerY;
-      if (e.key === "ArrowUp") nextY--;
-      else if (e.key === "ArrowDown") nextY++;
-      else if (e.key === "ArrowLeft") nextX--;
-      else if (e.key === "ArrowRight") nextX++;
-
-      if (map[nextY][nextX] !== "W") {
-        playerX = nextX;
-        playerY = nextY;
-        steps++;
-        updateCharacterPosition();
-        checkTileInteraction();
-
-        if (steps >= maxSteps) {
-          alert("⏳ Tu as erré trop longtemps dans l'ombre... Le temps t'a absorbé.");
-          location.reload();
-        }
-      }
-    });
-
-    drawMap();
-    updateCharacterPosition();
-  </script>
+    logEvent("Des tombes sont apparues...");
+  }
+  if (dest.type === "water") {
+    const skins = ["🧍", "👤", "👁", "👣", "🧠"];
+    player.skin = skins[Math.floor(Math.random() * skins.length)];
+    logEvent("Nouvelle apparence acquise.");
+  }
+  player.x = nx;
+  player.y = ny;
+  render();
+}
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowUp") move(0, -1);
+  if (e.key === "ArrowDown") move(0, 1);
+  if (e.key === "ArrowLeft") move(-1, 0);
+  if (e.key === "ArrowRight") move(1, 0);
+});
+render();
+</script>
 </body>
 </html>

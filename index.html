@@ -25,7 +25,7 @@
       justify-content: center;
       align-items: center;
       font-size: 24px;
-      border: 1px solid #88aa88; /* très légère */
+      border: 1px solid #88aa88;
     }
     .player {
       background-color: #ffe;
@@ -46,7 +46,8 @@
       lake: [2, 3],
       books: [4, 5],
       tree: [7, 1],
-      fruit: null // ex: { emoji: '🍊', position: [7,1] }
+      fruit: null,
+      graves: new Set() // positions de tombes sous forme "x,y"
     };
 
     function positionKey(x, y) {
@@ -69,20 +70,41 @@
       objects.fruit = null;
     }
 
+    function addRandomGraves(count = 3) {
+      for (let i = 0; i < count; i++) {
+        let gx, gy;
+        let tries = 0;
+        do {
+          gx = Math.floor(Math.random() * width);
+          gy = Math.floor(Math.random() * height);
+          tries++;
+        } while (
+          (gx === playerX && gy === playerY) ||
+          objects.lake[0] === gx && objects.lake[1] === gy ||
+          objects.books[0] === gx && objects.books[1] === gy ||
+          objects.tree[0] === gx && objects.tree[1] === gy ||
+          objects.fruit && gx === objects.fruit.x && gy === objects.fruit.y ||
+          objects.graves.has(positionKey(gx, gy)) ||
+          tries > 50
+        );
+        objects.graves.add(positionKey(gx, gy));
+      }
+    }
+
     function createGrid() {
       grid.innerHTML = '';
       for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
           const cell = document.createElement('div');
           cell.className = 'cell';
-          const key = positionKey(x, y);
+          let content = '';
 
+          const key = positionKey(x, y);
           const [lx, ly] = objects.lake;
           const [bx, by] = objects.books;
           const [tx, ty] = objects.tree;
           const fruitHere = objects.fruit && x === objects.fruit.x && y === objects.fruit.y;
-
-          let content = '';
+          const graveHere = objects.graves.has(key);
 
           if (x === playerX && y === playerY) {
             content = currentSkin;
@@ -95,6 +117,8 @@
             content = '📚';
           } else if (x === tx && y === ty) {
             content = '🌳';
+          } else if (graveHere) {
+            content = '🪦';
           }
 
           cell.textContent = content;
@@ -114,24 +138,24 @@
         const [bx, by] = objects.books;
         const [tx, ty] = objects.tree;
 
-        // Sur le lac : changement de skin
+        // Passage dans l'eau : changer de skin aléatoirement
         if (playerX === lx && playerY === ly) {
           const newSkin = swimSkins[Math.floor(Math.random() * swimSkins.length)];
           currentSkin = newSkin;
         }
 
-        // Sur la bibliothèque : on mélange les objets (et supprime le fruit)
+        // Passage à la bibliothèque : mélanger les éléments et ajouter des tombes
         if (playerX === bx && playerY === by) {
           shuffleObjects();
+          addRandomGraves(3); // ajoute 3 tombes à chaque fois
         }
 
-        // Sur l'arbre : apparition ou disparition de fruit
+        // Passage à l’arbre : fruit ou retour à arbre
         const onFruit = objects.fruit && playerX === objects.fruit.x && playerY === objects.fruit.y;
         if (playerX === tx && playerY === ty && !onFruit) {
           const emoji = Math.random() < 0.5 ? '🍎' : '🍊';
           objects.fruit = { x: tx, y: ty, emoji };
         } else if (onFruit) {
-          // revenir à l’arbre
           objects.fruit = null;
         }
 

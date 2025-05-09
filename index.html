@@ -1,208 +1,114 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Mini Map Jeu</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortir de la Caverne - Jeu philosophique</title>
   <style>
     body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: black;
+      color: white;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       height: 100vh;
-      background-color: #223;
-      font-family: sans-serif;
+      transition: background-color 1s;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(10, 50px);
-      grid-template-rows: repeat(10, 50px);
+    h1, p {
+      text-align: center;
     }
-    .cell {
-      width: 50px;
-      height: 50px;
-      background-color: #88aa88;
+    .choice {
+      background-color: #222;
+      border: 2px solid white;
+      padding: 1em;
+      margin: 1em;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 300px;
+      transition: background-color 0.3s;
+    }
+    .choice:hover {
+      background-color: #444;
+    }
+    #choices {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      font-size: 24px;
-      border: 1px solid #88aa88;
     }
-    .player {
-      background-color: #ffe;
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div class="grid" id="grid"></div>
-
+  <h1 id="title">🕳️ Allégorie de la Caverne</h1>
+  <p id="question">Choisis la voie de la vérité :</p>
+  <div id="choices"></div>
   <script>
-    const grid = document.getElementById('grid');
-    const width = 10, height = 10;
-    let playerX = 0, playerY = 0;
-    let isGameOver = false;
-
-    const swimSkins = ['🏊', '🧜', '🦈', '🐬', '🧽', '🪼', '🫧'];
-    let currentSkin = '🧍';
-
-    let objects = {
-      lake: new Set(), // Set de positions "x,y"
-      books: [4, 5],
-      tree: [7, 1],
-      fruit: null,
-      graves: new Set(),
-      deadTrees: new Set()
-    };
-
-    function positionKey(x, y) {
-      return `${x},${y}`;
-    }
-
-    function randomPosition(exclude = []) {
-      let tries = 0;
-      let x, y;
-      do {
-        x = Math.floor(Math.random() * width);
-        y = Math.floor(Math.random() * height);
-        tries++;
-      } while (
-        exclude.includes(positionKey(x, y)) &&
-        tries < 100
-      );
-      return [x, y];
-    }
-
-    function generateLake() {
-      objects.lake.clear();
-      const lakeSize = Math.floor(Math.random() * 4) + 2;
-      const [cx, cy] = randomPosition([]);
-      for (let i = 0; i < lakeSize; i++) {
-        const dx = Math.floor(Math.random() * 3) - 1;
-        const dy = Math.floor(Math.random() * 3) - 1;
-        const lx = Math.max(0, Math.min(width - 1, cx + dx));
-        const ly = Math.max(0, Math.min(height - 1, cy + dy));
-        objects.lake.add(positionKey(lx, ly));
+    const steps = [
+      {
+        question: "Quelle est la vraie source du savoir ?",
+        choices: [
+          { text: "Ce que mes yeux voient", correct: false },
+          { text: "Ce que la raison saisit", correct: true }
+        ]
+      },
+      {
+        question: "Le monde visible est-il...",
+        choices: [
+          { text: "Le monde véritable", correct: false },
+          { text: "Une copie du vrai monde", correct: true }
+        ]
+      },
+      {
+        question: "Qu’est-ce que l’idée du Bien ?",
+        choices: [
+          { text: "Un concept relatif au plaisir", correct: false },
+          { text: "Le principe suprême qui éclaire toutes choses", correct: true }
+        ]
+      },
+      {
+        question: "Pourquoi le philosophe revient-il dans la caverne ?",
+        choices: [
+          { text: "Par nostalgie", correct: false },
+          { text: "Par devoir envers les autres", correct: true }
+        ]
       }
+    ];
+
+    let step = 0;
+
+    function renderStep() {
+      document.getElementById("question").textContent = steps[step].question;
+      const choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+      steps[step].choices.forEach(choice => {
+        const btn = document.createElement("div");
+        btn.className = "choice";
+        btn.textContent = choice.text;
+        btn.onclick = () => nextStep(choice.correct);
+        choicesDiv.appendChild(btn);
+      });
     }
 
-    function shuffleObjects() {
-      const exclude = [positionKey(playerX, playerY)];
-      const [bx, by] = randomPosition(exclude);
-      const [tx, ty] = randomPosition([...exclude, positionKey(bx, by)]);
-      objects.books = [bx, by];
-      objects.tree = [tx, ty];
-      objects.fruit = null;
-      generateLake();
-      addRandomGraves(3);
-      addDeadTrees(3);
-    }
-
-    function addRandomGraves(count = 3) {
-      for (let i = 0; i < count; i++) {
-        const [x, y] = randomPosition([positionKey(playerX, playerY)]);
-        objects.graves.add(positionKey(x, y));
-      }
-    }
-
-    function addDeadTrees(count = 3) {
-      for (let i = 0; i < count; i++) {
-        const [x, y] = randomPosition([
-          positionKey(playerX, playerY),
-          ...objects.lake,
-          positionKey(...objects.books),
-          positionKey(...objects.tree)
-        ]);
-        objects.deadTrees.add(positionKey(x, y));
-      }
-    }
-
-    function createGrid() {
-      grid.innerHTML = '';
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const cell = document.createElement('div');
-          cell.className = 'cell';
-          let content = '';
-
-          const key = positionKey(x, y);
-          const fruitHere = objects.fruit && x === objects.fruit.x && y === objects.fruit.y;
-
-          if (x === playerX && y === playerY) {
-            content = currentSkin;
-            cell.classList.add('player');
-          } else if (fruitHere) {
-            content = objects.fruit.emoji;
-          } else if (objects.lake.has(key)) {
-            content = '🌊';
-          } else if (objects.graves.has(key)) {
-            content = '🪦';
-          } else if (objects.deadTrees.has(key)) {
-            content = '🪵';
-          } else if (x === objects.books[0] && y === objects.books[1]) {
-            content = '📚';
-          } else if (x === objects.tree[0] && y === objects.tree[1]) {
-            content = '🌳';
-          }
-
-          cell.textContent = content;
-          grid.appendChild(cell);
-        }
-      }
-    }
-
-    function movePlayer(dx, dy) {
-      if (isGameOver) return;
-
-      const newX = playerX + dx;
-      const newY = playerY + dy;
-      if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
-        playerX = newX;
-        playerY = newY;
-
-        const pos = positionKey(playerX, playerY);
-
-        if (objects.graves.has(pos)) {
-          alert('💀 Tu es tombé sur une tombe... Fin de la partie.');
-          isGameOver = true;
+    function nextStep(correct) {
+      if (correct) {
+        step++;
+        document.body.style.backgroundColor = `rgb(${30 + step * 50}, ${30 + step * 50}, ${30 + step * 50})`;
+        if (step >= steps.length) {
+          document.body.innerHTML = "<h1>☀️ Tu as vu l'idée du Bien !</h1><p>Tu es devenu philosophe. Le monde intelligible t'accueille.</p>";
           return;
         }
-
-        if (objects.lake.has(pos)) {
-          const newSkin = swimSkins[Math.floor(Math.random() * swimSkins.length)];
-          currentSkin = newSkin;
-        }
-
-        if (playerX === objects.books[0] && playerY === objects.books[1]) {
-          shuffleObjects();
-        }
-
-        const onFruit = objects.fruit && playerX === objects.fruit.x && playerY === objects.fruit.y;
-        if (playerX === objects.tree[0] && playerY === objects.tree[1] && !onFruit) {
-          const emoji = Math.random() < 0.5 ? '🍎' : '🍊';
-          objects.fruit = { x: playerX, y: playerY, emoji };
-        } else if (onFruit) {
-          objects.fruit = null;
-        }
-
-        createGrid();
+        renderStep();
+      } else {
+        document.body.innerHTML = "<h1>🔗 Tu es resté enchaîné...</h1><p>Tu as pris l'apparence pour la réalité.</p><button onclick=\"location.reload()\">Recommencer</button>";
       }
     }
 
-    document.addEventListener('keydown', (e) => {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-      }
-      switch (e.key) {
-        case 'ArrowUp': movePlayer(0, -1); break;
-        case 'ArrowDown': movePlayer(0, 1); break;
-        case 'ArrowLeft': movePlayer(-1, 0); break;
-        case 'ArrowRight': movePlayer(1, 0); break;
-      }
-    });
-
-    // Initialisation
-    generateLake();
-    addDeadTrees(3);
-    createGrid();
+    renderStep();
   </script>
 </body>
 </html>

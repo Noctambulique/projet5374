@@ -2,14 +2,14 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Mini Jeu Map</title>
+  <title>Mini Map Interactif</title>
   <style>
     body {
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background-color: #eef;
+      background-color: #223;
       font-family: sans-serif;
     }
     .grid {
@@ -17,19 +17,18 @@
       grid-template-columns: repeat(10, 50px);
       grid-template-rows: repeat(10, 50px);
       gap: 2px;
-      background-color: #ccc;
     }
     .cell {
       width: 50px;
       height: 50px;
-      background-color: #fff;
+      background-color: #88aa88;
       display: flex;
       justify-content: center;
       align-items: center;
       font-size: 24px;
     }
     .player {
-      background-color: #ffd;
+      background-color: #ffe;
     }
   </style>
 </head>
@@ -38,16 +37,35 @@
 
   <script>
     const grid = document.getElementById('grid');
-    const width = 10;
-    const height = 10;
-    let playerX = 0;
-    let playerY = 0;
+    const width = 10, height = 10;
+    let playerX = 0, playerY = 0;
+    let isSwimming = false;
 
-    const objects = {
-      '2,3': '🌊',
-      '4,5': '📚',
-      '7,1': '🌳'
+    // Objets initiaux
+    let objects = {
+      lake: [2, 3],
+      books: [4, 5],
+      tree: [7, 1]
     };
+
+    function positionKey(x, y) {
+      return `${x},${y}`;
+    }
+
+    function shuffleObjects() {
+      const positions = [];
+      while (positions.length < 3) {
+        const x = Math.floor(Math.random() * width);
+        const y = Math.floor(Math.random() * height);
+        const key = positionKey(x, y);
+        if (key !== positionKey(playerX, playerY) && !positions.includes(key)) {
+          positions.push([x, y]);
+        }
+      }
+      objects.lake = positions[0];
+      objects.books = positions[1];
+      objects.tree = positions[2];
+    }
 
     function createGrid() {
       grid.innerHTML = '';
@@ -55,13 +73,23 @@
         for (let x = 0; x < width; x++) {
           const cell = document.createElement('div');
           cell.className = 'cell';
-          const key = `${x},${y}`;
+
+          const key = positionKey(x, y);
+          const [lx, ly] = objects.lake;
+          const [bx, by] = objects.books;
+          const [tx, ty] = objects.tree;
+
           if (x === playerX && y === playerY) {
-            cell.textContent = '🧍';
+            cell.textContent = isSwimming ? '🏊' : '🧍';
             cell.classList.add('player');
-          } else if (objects[key]) {
-            cell.textContent = objects[key];
+          } else if (x === lx && y === ly) {
+            cell.textContent = '🌊';
+          } else if (x === bx && y === by) {
+            cell.textContent = '📚';
+          } else if (x === tx && y === ty) {
+            cell.textContent = '🌳';
           }
+
           grid.appendChild(cell);
         }
       }
@@ -73,6 +101,18 @@
       if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
         playerX = newX;
         playerY = newY;
+
+        const [lx, ly] = objects.lake;
+        const [bx, by] = objects.books;
+
+        // Lac : transformation
+        isSwimming = (playerX === lx && playerY === ly);
+
+        // Bibliothèque : shuffle
+        if (playerX === bx && playerY === by) {
+          shuffleObjects();
+        }
+
         createGrid();
       }
     }

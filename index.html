@@ -10,12 +10,7 @@
       font-family: 'Segoe UI', sans-serif;
       background-color: black;
       color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      transition: background-color 1s;
+      overflow: hidden;
     }
     h1, p {
       text-align: center;
@@ -24,7 +19,7 @@
       background-color: #222;
       border: 2px solid white;
       padding: 1em;
-      margin: 1em;
+      margin: 1em auto;
       border-radius: 10px;
       cursor: pointer;
       width: 300px;
@@ -33,20 +28,37 @@
     .choice:hover {
       background-color: #444;
     }
-    #choices {
+    #game {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      height: 100vh;
+      transition: background-color 1s;
     }
-    .hidden {
-      display: none;
+    #character {
+      width: 30px;
+      height: 30px;
+      background-color: white;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    #question, #choices {
+      position: relative;
+      z-index: 2;
     }
   </style>
 </head>
 <body>
-  <h1 id="title">🕳️ Allégorie de la Caverne</h1>
-  <p id="question">Choisis la voie de la vérité :</p>
-  <div id="choices"></div>
+  <div id="game">
+    <h1 id="title">🕳️ Allégorie de la Caverne</h1>
+    <p id="question">Choisis la voie de la vérité :</p>
+    <div id="choices"></div>
+    <div id="character"></div>
+  </div>
+
   <script>
     const steps = [
       {
@@ -80,6 +92,19 @@
     ];
 
     let step = 0;
+    const character = document.getElementById("character");
+    let posX = window.innerWidth / 2;
+    let posY = window.innerHeight / 2;
+
+    document.addEventListener("keydown", (e) => {
+      const speed = 10;
+      if (e.key === "ArrowUp") posY -= speed;
+      if (e.key === "ArrowDown") posY += speed;
+      if (e.key === "ArrowLeft") posX -= speed;
+      if (e.key === "ArrowRight") posX += speed;
+      character.style.left = `${posX}px`;
+      character.style.top = `${posY}px`;
+    });
 
     function renderStep() {
       document.getElementById("question").textContent = steps[step].question;
@@ -92,12 +117,12 @@
         btn.onclick = () => nextStep(choice.correct);
         choicesDiv.appendChild(btn);
       });
+      document.getElementById("game").style.backgroundColor = `rgb(${30 + step * 50}, ${30 + step * 50}, ${30 + step * 50})`;
     }
 
     function nextStep(correct) {
       if (correct) {
         step++;
-        document.body.style.backgroundColor = `rgb(${30 + step * 50}, ${30 + step * 50}, ${30 + step * 50})`;
         if (step >= steps.length) {
           document.body.innerHTML = "<h1>☀️ Tu as vu l'idée du Bien !</h1><p>Tu es devenu philosophe. Le monde intelligible t'accueille.</p>";
           return;

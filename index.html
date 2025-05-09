@@ -7,26 +7,27 @@
   <style>
     body {
       margin: 0;
-      font-family: sans-serif;
-      background-color: #222;
+      font-family: monospace;
+      background-color: #111;
       color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     #game {
       display: grid;
       grid-template-columns: repeat(10, 40px);
       grid-template-rows: repeat(10, 40px);
-      margin: 20px auto;
-      width: 400px;
-      height: 400px;
-      border: 2px solid white;
+      gap: 1px;
+      margin-top: 20px;
     }
     .cell {
       width: 40px;
       height: 40px;
-      box-sizing: border-box;
-    }
-    .player {
-      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
     }
     .reality {
       background-color: #b08968;
@@ -37,23 +38,41 @@
     .portal {
       background-color: #ffdd57;
     }
+    .player {
+      background-color: white;
+      color: black;
+      font-weight: bold;
+    }
+    .info {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1 align="center">🎮 Résonance</h1>
+  <h1>🎮 Résonance</h1>
+  <p class="info">Déplacement : Flèches | Changer de monde : Espace | Intensité (C) | Interagir (E)</p>
   <div id="game"></div>
-  <p align="center">Flèches : déplacer | Espace : changer de monde</p>
+  <div class="info">
+    Monde : <span id="world">Réalité</span> | Intensité : <span id="intensity">0</span> | Distance : <span id="distance">5</span>
+  </div>
   <script>
     const gridSize = 10;
     const game = document.getElementById('game');
+    const worldLabel = document.getElementById('world');
+    const intensityLabel = document.getElementById('intensity');
+    const distanceLabel = document.getElementById('distance');
+
     let world = 'reality';
+    let intensity = 0;
+    let distance = 5;
 
     const map = {
       reality: Array(gridSize * gridSize).fill('reality'),
       thought: Array(gridSize * gridSize).fill('thought')
     };
-    map.reality[44] = 'portal';
-    map.thought[12] = 'portal';
+
+    map.reality[22] = 'portal';
+    map.thought[77] = 'portal';
 
     let playerPosition = 0;
 
@@ -61,11 +80,14 @@
       game.innerHTML = '';
       map[world].forEach((type, i) => {
         const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.classList.add(type);
+        cell.classList.add('cell', type);
         if (i === playerPosition) cell.classList.add('player');
+        cell.innerText = i === playerPosition ? '@' : '';
         game.appendChild(cell);
       });
+      worldLabel.textContent = world === 'reality' ? 'Réalité' : 'Pensée';
+      intensityLabel.textContent = intensity;
+      distanceLabel.textContent = distance;
     }
 
     function movePlayer(dx, dy) {
@@ -74,22 +96,47 @@
       const newX = x + dx;
       const newY = y + dy;
       if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
-        playerPosition = newY * gridSize + newX;
+        const nextPos = newY * gridSize + newX;
+        if (world === 'reality' && map.reality[nextPos] !== 'wall') {
+          playerPosition = nextPos;
+        } else if (world === 'thought') {
+          playerPosition = nextPos;
+        }
+        drawMap();
+      }
+    }
+
+    function changeWorld() {
+      if (map[world][playerPosition] === 'portal') {
+        world = world === 'reality' ? 'thought' : 'reality';
+        drawMap();
+      }
+    }
+
+    function increaseIntensity() {
+      intensity += 1;
+      if (distance > 0) distance -= 1;
+      drawMap();
+    }
+
+    function interact() {
+      if (map[world][playerPosition] === 'portal') {
+        changeWorld();
+      } else {
+        intensity += 1;
         drawMap();
       }
     }
 
     document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowUp') movePlayer(0, -1);
-      if (e.key === 'ArrowDown') movePlayer(0, 1);
-      if (e.key === 'ArrowLeft') movePlayer(-1, 0);
-      if (e.key === 'ArrowRight') movePlayer(1, 0);
-      if (e.key === ' ') {
-        const currentTile = map[world][playerPosition];
-        if (currentTile === 'portal') {
-          world = world === 'reality' ? 'thought' : 'reality';
-          drawMap();
-        }
+      switch (e.key) {
+        case 'ArrowUp': movePlayer(0, -1); break;
+        case 'ArrowDown': movePlayer(0, 1); break;
+        case 'ArrowLeft': movePlayer(-1, 0); break;
+        case 'ArrowRight': movePlayer(1, 0); break;
+        case ' ': changeWorld(); break;
+        case 'c': case 'C': increaseIntensity(); break;
+        case 'e': case 'E': interact(); break;
       }
     });
 

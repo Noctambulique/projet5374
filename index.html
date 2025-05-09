@@ -8,7 +8,7 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background-color: black;
+      background: radial-gradient(ellipse at center, #000000 0%, #1a1a1a 100%);
       color: white;
       overflow: hidden;
     }
@@ -16,35 +16,42 @@
       position: relative;
       width: 100vw;
       height: 100vh;
+      background: url('https://www.transparenttextures.com/patterns/dark-mosaic.png');
     }
     .tile {
       width: 40px;
       height: 40px;
       position: absolute;
-      border: 1px solid #444;
+      border: 1px solid rgba(255,255,255,0.05);
       box-sizing: border-box;
+      transition: background-color 0.3s;
     }
-    .wall { background-color: #222; }
+    .wall { background-color: #333; }
     .floor { background-color: #111; }
-    .exit { background-color: #0f0; }
-    .questionTile { background-color: #00f; }
+    .exit { background-color: #0c0; }
+    .questionTile { background-color: #0055aa; }
     #character {
       width: 30px;
       height: 30px;
       background-color: white;
+      border-radius: 50%;
       position: absolute;
       z-index: 10;
+      box-shadow: 0 0 8px white;
     }
     #questionBox {
       position: absolute;
-      top: 10%;
+      top: 20%;
       left: 50%;
       transform: translateX(-50%);
-      background-color: rgba(0, 0, 0, 0.8);
-      border: 2px solid white;
+      background-color: rgba(0, 0, 0, 0.9);
+      border: 2px solid #aaa;
       padding: 20px;
+      width: 60%;
+      border-radius: 10px;
       display: none;
       z-index: 20;
+      box-shadow: 0 0 15px #222;
     }
     .choice {
       background-color: #222;
@@ -52,8 +59,12 @@
       margin: 10px;
       cursor: pointer;
       border-radius: 5px;
+      transition: background-color 0.3s, transform 0.2s;
     }
-    .choice:hover { background-color: #444; }
+    .choice:hover {
+      background-color: #444;
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body>
@@ -88,6 +99,8 @@
     let playerY = 1;
     let currentStep = 0;
     let inQuestion = false;
+    let steps = 0;
+    const maxSteps = 50;
 
     const questions = [
       {
@@ -102,6 +115,13 @@
         choices: [
           { text: "Le monde véritable", correct: false },
           { text: "Une copie du vrai monde", correct: true }
+        ]
+      },
+      {
+        question: "Pourquoi le philosophe revient-il dans la caverne ?",
+        choices: [
+          { text: "Par nostalgie", correct: false },
+          { text: "Par devoir envers les autres", correct: true }
         ]
       }
     ];
@@ -172,11 +192,18 @@
       else if (e.key === "ArrowDown") nextY++;
       else if (e.key === "ArrowLeft") nextX--;
       else if (e.key === "ArrowRight") nextX++;
+
       if (map[nextY][nextX] !== "W") {
         playerX = nextX;
         playerY = nextY;
+        steps++;
         updateCharacterPosition();
         checkTileInteraction();
+
+        if (steps >= maxSteps) {
+          alert("⏳ Tu as erré trop longtemps dans l'ombre... Le temps t'a absorbé.");
+          location.reload();
+        }
       }
     });
 

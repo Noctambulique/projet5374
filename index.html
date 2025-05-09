@@ -12,64 +12,84 @@
       color: white;
       overflow: hidden;
     }
-    h1, p {
-      text-align: center;
-    }
-    .choice {
-      background-color: #222;
-      border: 2px solid white;
-      padding: 1em;
-      margin: 1em auto;
-      border-radius: 10px;
-      cursor: pointer;
-      width: 300px;
-      transition: background-color 0.3s;
-    }
-    .choice:hover {
-      background-color: #444;
-    }
     #game {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       position: relative;
-      transition: background-color 1s;
+      width: 100vw;
+      height: 100vh;
     }
+    .tile {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      border: 1px solid #444;
+      box-sizing: border-box;
+    }
+    .wall { background-color: #222; }
+    .floor { background-color: #111; }
+    .exit { background-color: #0f0; }
+    .questionTile { background-color: #00f; }
     #character {
       width: 30px;
       height: 30px;
       background-color: white;
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1;
+      z-index: 10;
     }
-    #question, #choices {
-      position: relative;
-      z-index: 2;
-    }
-    .map-tile {
-      width: 40px;
-      height: 40px;
-      background-color: #111;
-      border: 1px solid #333;
+    #questionBox {
       position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      border: 2px solid white;
+      padding: 20px;
+      display: none;
+      z-index: 20;
     }
+    .choice {
+      background-color: #222;
+      padding: 10px;
+      margin: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .choice:hover { background-color: #444; }
   </style>
 </head>
 <body>
   <div id="game">
-    <h1 id="title">🕳️ Allégorie de la Caverne</h1>
-    <p id="question">Choisis la voie de la vérité :</p>
-    <div id="choices"></div>
     <div id="character"></div>
+    <div id="questionBox">
+      <p id="questionText"></p>
+      <div id="choiceContainer"></div>
+    </div>
   </div>
-
   <script>
-    const steps = [
+    const map = [
+      "WWWWWWWWWW",
+      "W........W",
+      "W..Q.....W",
+      "W..W.....W",
+      "W..W..E..W",
+      "W..W.....W",
+      "W..Q.....W",
+      "W........W",
+      "WWWWWWWWWW"
+    ];
+
+    const TILE_SIZE = 40;
+    const character = document.getElementById("character");
+    const game = document.getElementById("game");
+    const questionBox = document.getElementById("questionBox");
+    const questionText = document.getElementById("questionText");
+    const choiceContainer = document.getElementById("choiceContainer");
+
+    let playerX = 1;
+    let playerY = 1;
+    let currentStep = 0;
+    let inQuestion = false;
+
+    const questions = [
       {
         question: "Quelle est la vraie source du savoir ?",
         choices: [
@@ -83,105 +103,85 @@
           { text: "Le monde véritable", correct: false },
           { text: "Une copie du vrai monde", correct: true }
         ]
-      },
-      {
-        question: "Qu’est-ce que l’idée du Bien ?",
-        choices: [
-          { text: "Un concept relatif au plaisir", correct: false },
-          { text: "Le principe suprême qui éclaire toutes choses", correct: true }
-        ]
-      },
-      {
-        question: "Pourquoi le philosophe revient-il dans la caverne ?",
-        choices: [
-          { text: "Par nostalgie", correct: false },
-          { text: "Par devoir envers les autres", correct: true }
-        ]
       }
     ];
 
-    let step = 0;
-    const character = document.getElementById("character");
-    let posX = window.innerWidth / 2;
-    let posY = window.innerHeight / 2;
-
-    // Map generation
-    const game = document.getElementById("game");
-    const mapTiles = [];
-    const mapSize = 10;
-    const tileSize = 40;
-    function createMap() {
-      for (let y = 0; y < mapSize; y++) {
-        for (let x = 0; x < mapSize; x++) {
+    function drawMap() {
+      for (let y = 0; y < map.length; y++) {
+        for (let x = 0; x < map[y].length; x++) {
           const tile = document.createElement("div");
-          tile.classList.add("map-tile");
-          tile.style.left = `${x * tileSize}px`;
-          tile.style.top = `${y * tileSize}px`;
-          tile.style.backgroundColor = Math.random() > 0.8 ? "#222" : "#111";
-          tile.dataset.role = (Math.random() > 0.95 ? "trap" : "empty");
+          tile.classList.add("tile");
+          tile.style.left = x * TILE_SIZE + "px";
+          tile.style.top = y * TILE_SIZE + "px";
+          const type = map[y][x];
+          if (type === "W") tile.classList.add("wall");
+          else if (type === "E") tile.classList.add("exit");
+          else if (type === "Q") tile.classList.add("questionTile");
+          else tile.classList.add("floor");
           game.appendChild(tile);
-          mapTiles.push(tile);
         }
       }
     }
 
-    function checkCollision() {
-      const charRect = character.getBoundingClientRect();
-      mapTiles.forEach(tile => {
-        const tileRect = tile.getBoundingClientRect();
-        if (
-          charRect.left < tileRect.right &&
-          charRect.right > tileRect.left &&
-          charRect.top < tileRect.bottom &&
-          charRect.bottom > tileRect.top
-        ) {
-          if (tile.dataset.role === "trap") {
-            document.body.innerHTML = "<h1>🧱 Tu t'es heurté à une illusion !</h1><p>Essaie encore de distinguer la vérité.</p><button onclick=\"location.reload()\">Recommencer</button>";
-          }
-        }
+    function updateCharacterPosition() {
+      character.style.left = playerX * TILE_SIZE + "px";
+      character.style.top = playerY * TILE_SIZE + "px";
+    }
+
+    function showQuestionBox(q) {
+      inQuestion = true;
+      questionBox.style.display = "block";
+      questionText.textContent = q.question;
+      choiceContainer.innerHTML = "";
+      q.choices.forEach(choice => {
+        const btn = document.createElement("div");
+        btn.classList.add("choice");
+        btn.textContent = choice.text;
+        btn.onclick = () => handleAnswer(choice.correct);
+        choiceContainer.appendChild(btn);
       });
+    }
+
+    function handleAnswer(correct) {
+      if (correct) {
+        questionBox.style.display = "none";
+        inQuestion = false;
+        currentStep++;
+      } else {
+        alert("Erreur ! Tu restes dans l'ombre.");
+        location.reload();
+      }
+    }
+
+    function checkTileInteraction() {
+      const tile = map[playerY][playerX];
+      if (tile === "Q" && currentStep < questions.length) {
+        showQuestionBox(questions[currentStep]);
+      }
+      if (tile === "E" && currentStep >= questions.length) {
+        alert("☀️ Tu as vu l'idée du Bien ! Tu es sorti de la caverne.");
+        location.reload();
+      }
     }
 
     document.addEventListener("keydown", (e) => {
-      const speed = 10;
-      if (e.key === "ArrowUp") posY -= speed;
-      if (e.key === "ArrowDown") posY += speed;
-      if (e.key === "ArrowLeft") posX -= speed;
-      if (e.key === "ArrowRight") posX += speed;
-      character.style.left = `${posX}px`;
-      character.style.top = `${posY}px`;
-      checkCollision();
+      if (inQuestion) return;
+      let nextX = playerX;
+      let nextY = playerY;
+      if (e.key === "ArrowUp") nextY--;
+      else if (e.key === "ArrowDown") nextY++;
+      else if (e.key === "ArrowLeft") nextX--;
+      else if (e.key === "ArrowRight") nextX++;
+      if (map[nextY][nextX] !== "W") {
+        playerX = nextX;
+        playerY = nextY;
+        updateCharacterPosition();
+        checkTileInteraction();
+      }
     });
 
-    function renderStep() {
-      document.getElementById("question").textContent = steps[step].question;
-      const choicesDiv = document.getElementById("choices");
-      choicesDiv.innerHTML = "";
-      steps[step].choices.forEach(choice => {
-        const btn = document.createElement("div");
-        btn.className = "choice";
-        btn.textContent = choice.text;
-        btn.onclick = () => nextStep(choice.correct);
-        choicesDiv.appendChild(btn);
-      });
-      document.getElementById("game").style.backgroundColor = `rgb(${30 + step * 50}, ${30 + step * 50}, ${30 + step * 50})`;
-    }
-
-    function nextStep(correct) {
-      if (correct) {
-        step++;
-        if (step >= steps.length) {
-          document.body.innerHTML = "<h1>☀️ Tu as vu l'idée du Bien !</h1><p>Tu es devenu philosophe. Le monde intelligible t'accueille.</p>";
-          return;
-        }
-        renderStep();
-      } else {
-        document.body.innerHTML = "<h1>🔗 Tu es resté enchaîné...</h1><p>Tu as pris l'apparence pour la réalité.</p><button onclick=\"location.reload()\">Recommencer</button>";
-      }
-    }
-
-    createMap();
-    renderStep();
+    drawMap();
+    updateCharacterPosition();
   </script>
 </body>
 </html>

@@ -7,175 +7,93 @@
   <style>
     body {
       margin: 0;
-      background: #111;
-      font-family: monospace;
-      overflow: hidden;
+      font-family: sans-serif;
+      background-color: #222;
       color: white;
     }
     #game {
       display: grid;
       grid-template-columns: repeat(10, 40px);
       grid-template-rows: repeat(10, 40px);
-      gap: 1px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      margin: 20px auto;
+      width: 400px;
+      height: 400px;
+      border: 2px solid white;
     }
     .cell {
       width: 40px;
       height: 40px;
-      background-color: #444;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 20px;
-      transition: background-color 0.2s;
+      box-sizing: border-box;
     }
-    .player { background-color: #0cf; }
-    .wall { background-color: #222; }
-    .portal { background-color: purple; }
-    .tree { background-color: green; }
-    .fruit { background-color: orange; }
-    .book { background-color: gold; }
-    .grave { background-color: darkred; }
-    .water { background-color: #07f; }
-    #ui {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      background: rgba(0,0,0,0.7);
-      padding: 10px;
-      border-radius: 5px;
-      font-size: 14px;
+    .player {
+      background-color: white;
+    }
+    .reality {
+      background-color: #b08968;
+    }
+    .thought {
+      background-color: #6a4c93;
+    }
+    .portal {
+      background-color: #ffdd57;
     }
   </style>
 </head>
 <body>
-<div id="ui">
-  Monde : <span id="worldDisplay">Réalité</span><br>
-  Skin : <span id="skinDisplay">🧍</span><br>
-  Journal : <span id="log"></span>
-</div>
-<div id="game"></div>
-<script>
-const gridSize = 10;
-const game = document.getElementById("game");
-const worldDisplay = document.getElementById("worldDisplay");
-const skinDisplay = document.getElementById("skinDisplay");
-const log = document.getElementById("log");
-let world = "reality";
-let player = { x: 1, y: 1, skin: "🧍" };
-const items = {};
-function randomCell() {
-  const r = Math.random();
-  if (r < 0.05) return { type: "wall" };
-  if (r < 0.08) return { type: "tree" };
-  if (r < 0.1) return { type: "book" };
-  if (r < 0.12) return { type: "water" };
-  return { type: "empty" };
-}
-let map = [];
-function generateMap() {
-  map = [];
-  for (let y = 0; y < gridSize; y++) {
-    map[y] = [];
-    for (let x = 0; x < gridSize; x++) {
-      map[y][x] = randomCell();
+  <h1 align="center">🎮 Résonance</h1>
+  <div id="game"></div>
+  <p align="center">Flèches : déplacer | Espace : changer de monde</p>
+  <script>
+    const gridSize = 10;
+    const game = document.getElementById('game');
+    let world = 'reality';
+
+    const map = {
+      reality: Array(gridSize * gridSize).fill('reality'),
+      thought: Array(gridSize * gridSize).fill('thought')
+    };
+    map.reality[44] = 'portal';
+    map.thought[12] = 'portal';
+
+    let playerPosition = 0;
+
+    function drawMap() {
+      game.innerHTML = '';
+      map[world].forEach((type, i) => {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.classList.add(type);
+        if (i === playerPosition) cell.classList.add('player');
+        game.appendChild(cell);
+      });
     }
-  }
-  map[1][1] = { type: "empty" };
-  map[2][2] = { type: "portal" };
-  map[3][3] = { type: "tree" };
-  map[4][4] = { type: "book" };
-  map[5][5] = { type: "water" };
-}
-generateMap();
-function updateUI() {
-  worldDisplay.textContent = world === "reality" ? "Réalité" : "Pensée";
-  skinDisplay.textContent = player.skin;
-}
-function logEvent(msg) {
-  log.textContent = msg;
-  setTimeout(() => log.textContent = "", 2000);
-}
-function render() {
-  game.innerHTML = "";
-  for (let y = 0; y < gridSize; y++) {
-    for (let x = 0; x < gridSize; x++) {
-      const div = document.createElement("div");
-      div.className = "cell";
-      const cell = map[y][x];
-      if (x === player.x && y === player.y) {
-        div.classList.add("player");
-        div.textContent = player.skin;
-      } else {
-        if (cell.type !== "empty") div.classList.add(cell.type);
-        if (cell.type === "tree") div.textContent = "🌳";
-        if (cell.type === "book") div.textContent = "📚";
-        if (cell.type === "portal") div.textContent = "🌀";
-        if (cell.type === "grave") div.textContent = "🪦";
-        if (cell.type === "water") div.textContent = "🌊";
-        if (cell.type === "fruit") div.textContent = "🍊";
+
+    function movePlayer(dx, dy) {
+      const x = playerPosition % gridSize;
+      const y = Math.floor(playerPosition / gridSize);
+      const newX = x + dx;
+      const newY = y + dy;
+      if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
+        playerPosition = newY * gridSize + newX;
+        drawMap();
       }
-      game.appendChild(div);
     }
-  }
-  updateUI();
-}
-function move(dx, dy) {
-  const nx = player.x + dx;
-  const ny = player.y + dy;
-  if (nx < 0 || ny < 0 || nx >= gridSize || ny >= gridSize) return;
-  const dest = map[ny][nx];
-  if (dest.type === "wall") {
-    logEvent("Mur infranchissable.");
-    return;
-  }
-  if (dest.type === "grave") {
-    alert("Fin de la partie : vous avez marché sur une tombe.");
-    location.reload();
-  }
-  if (dest.type === "portal") {
-    world = (world === "reality") ? "thought" : "reality";
-    logEvent("Changement de monde.");
-    generateMap();
-  }
-  if (dest.type === "tree") {
-    map[ny][nx] = { type: items[`${nx},${ny}`] === "fruit" ? "tree" : "fruit" };
-    items[`${nx},${ny}`] = map[ny][nx].type;
-    logEvent(map[ny][nx].type === "fruit" ? "Un fruit est apparu." : "L'arbre renaît.");
-  }
-  if (dest.type === "fruit") {
-    map[ny][nx] = { type: "tree" };
-    items[`${nx},${ny}`] = "tree";
-    logEvent("Vous avez cueilli un fruit.");
-  }
-  if (dest.type === "book") {
-    for (let i = 0; i < 3; i++) {
-      const rx = Math.floor(Math.random() * gridSize);
-      const ry = Math.floor(Math.random() * gridSize);
-      if (map[ry][rx].type === "empty") map[ry][rx] = { type: "grave" };
-    }
-    logEvent("Des tombes sont apparues...");
-  }
-  if (dest.type === "water") {
-    const skins = ["🧍", "👤", "👁", "👣", "🧠"];
-    player.skin = skins[Math.floor(Math.random() * skins.length)];
-    logEvent("Nouvelle apparence acquise.");
-  }
-  player.x = nx;
-  player.y = ny;
-  render();
-}
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowUp") move(0, -1);
-  if (e.key === "ArrowDown") move(0, 1);
-  if (e.key === "ArrowLeft") move(-1, 0);
-  if (e.key === "ArrowRight") move(1, 0);
-});
-render();
-</script>
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp') movePlayer(0, -1);
+      if (e.key === 'ArrowDown') movePlayer(0, 1);
+      if (e.key === 'ArrowLeft') movePlayer(-1, 0);
+      if (e.key === 'ArrowRight') movePlayer(1, 0);
+      if (e.key === ' ') {
+        const currentTile = map[world][playerPosition];
+        if (currentTile === 'portal') {
+          world = world === 'reality' ? 'thought' : 'reality';
+          drawMap();
+        }
+      }
+    });
+
+    drawMap();
+  </script>
 </body>
 </html>

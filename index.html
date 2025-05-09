@@ -34,6 +34,7 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
+      position: relative;
       transition: background-color 1s;
     }
     #character {
@@ -44,10 +45,18 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+      z-index: 1;
     }
     #question, #choices {
       position: relative;
       z-index: 2;
+    }
+    .map-tile {
+      width: 40px;
+      height: 40px;
+      background-color: #111;
+      border: 1px solid #333;
+      position: absolute;
     }
   </style>
 </head>
@@ -96,6 +105,43 @@
     let posX = window.innerWidth / 2;
     let posY = window.innerHeight / 2;
 
+    // Map generation
+    const game = document.getElementById("game");
+    const mapTiles = [];
+    const mapSize = 10;
+    const tileSize = 40;
+    function createMap() {
+      for (let y = 0; y < mapSize; y++) {
+        for (let x = 0; x < mapSize; x++) {
+          const tile = document.createElement("div");
+          tile.classList.add("map-tile");
+          tile.style.left = `${x * tileSize}px`;
+          tile.style.top = `${y * tileSize}px`;
+          tile.style.backgroundColor = Math.random() > 0.8 ? "#222" : "#111";
+          tile.dataset.role = (Math.random() > 0.95 ? "trap" : "empty");
+          game.appendChild(tile);
+          mapTiles.push(tile);
+        }
+      }
+    }
+
+    function checkCollision() {
+      const charRect = character.getBoundingClientRect();
+      mapTiles.forEach(tile => {
+        const tileRect = tile.getBoundingClientRect();
+        if (
+          charRect.left < tileRect.right &&
+          charRect.right > tileRect.left &&
+          charRect.top < tileRect.bottom &&
+          charRect.bottom > tileRect.top
+        ) {
+          if (tile.dataset.role === "trap") {
+            document.body.innerHTML = "<h1>🧱 Tu t'es heurté à une illusion !</h1><p>Essaie encore de distinguer la vérité.</p><button onclick=\"location.reload()\">Recommencer</button>";
+          }
+        }
+      });
+    }
+
     document.addEventListener("keydown", (e) => {
       const speed = 10;
       if (e.key === "ArrowUp") posY -= speed;
@@ -104,6 +150,7 @@
       if (e.key === "ArrowRight") posX += speed;
       character.style.left = `${posX}px`;
       character.style.top = `${posY}px`;
+      checkCollision();
     });
 
     function renderStep() {
@@ -133,6 +180,7 @@
       }
     }
 
+    createMap();
     renderStep();
   </script>
 </body>

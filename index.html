@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Puzzle pour toi</title>
+  <title>Puzzle interactif</title>
   <style>
     body {
       background: #fff9f4;
@@ -18,86 +18,98 @@
     .puzzle {
       display: grid;
       grid-template-columns: repeat(3, 100px);
-      grid-gap: 5px;
+      grid-template-rows: repeat(3, 100px);
+      gap: 4px;
       justify-content: center;
-      margin-top: 30px;
+      margin: 20px auto;
+      width: 312px; /* 3*100px + 2*4px */
     }
 
     .piece {
       width: 100px;
       height: 100px;
-      background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Tiger_in_Ranthambhore.jpg/300px-Tiger_in_Ranthambhore.jpg');
+      background-image: url('https://i.postimg.cc/FK7r5VRR/IMG-20211031-174937.jpg');
       background-size: 300px 300px;
-      background-color: #eee;
       border: 1px solid #ccc;
-      transition: opacity 0.5s;
-      opacity: 0;
-      cursor: pointer;
+      box-sizing: border-box;
+      cursor: grab;
     }
-
-    input[type="checkbox"] {
-      display: none;
-    }
-
-    label {
-      display: block;
-    }
-
-    /* Bon ordre (chaque pièce à la bonne position) */
-    input#p1:checked ~ .puzzle label[for="p5"] .piece { opacity: 1; background-position: 0px 0px; }
-    input#p2:checked ~ .puzzle label[for="p3"] .piece { opacity: 1; background-position: -100px 0px; }
-    input#p3:checked ~ .puzzle label[for="p9"] .piece { opacity: 1; background-position: -200px 0px; }
-    input#p4:checked ~ .puzzle label[for="p1"] .piece { opacity: 1; background-position: 0px -100px; }
-    input#p5:checked ~ .puzzle label[for="p7"] .piece { opacity: 1; background-position: -100px -100px; }
-    input#p6:checked ~ .puzzle label[for="p4"] .piece { opacity: 1; background-position: -200px -100px; }
-    input#p7:checked ~ .puzzle label[for="p2"] .piece { opacity: 1; background-position: 0px -200px; }
-    input#p8:checked ~ .puzzle label[for="p8"] .piece { opacity: 1; background-position: -100px -200px; }
-    input#p9:checked ~ .puzzle label[for="p6"] .piece { opacity: 1; background-position: -200px -200px; }
 
     .message {
-      margin-top: 30px;
-      font-size: 20px;
-      color: #b75454;
       opacity: 0;
       transition: opacity 1s;
+      font-size: 18px;
+      color: #b75454;
+      margin-top: 30px;
     }
 
-    input#p1:checked:checked ~ input#p2:checked:checked ~ input#p3:checked:checked ~
-    input#p4:checked:checked ~ input#p5:checked:checked ~ input#p6:checked:checked ~
-    input#p7:checked:checked ~ input#p8:checked:checked ~ input#p9:checked:checked ~
-    .message {
+    .visible {
       opacity: 1;
     }
   </style>
 </head>
 <body>
-  <h1>Assemble le puzzle pour découvrir la surprise 💞</h1>
+  <h1>Assemble le puzzle 🧩</h1>
 
-  <!-- Cases mélangées -->
-  <input type="checkbox" id="p1">
-  <input type="checkbox" id="p2">
-  <input type="checkbox" id="p3">
-  <input type="checkbox" id="p4">
-  <input type="checkbox" id="p5">
-  <input type="checkbox" id="p6">
-  <input type="checkbox" id="p7">
-  <input type="checkbox" id="p8">
-  <input type="checkbox" id="p9">
+  <div class="puzzle" id="puzzle"></div>
 
-  <div class="puzzle">
-    <label for="p5"><div class="piece"></div></label>
-    <label for="p3"><div class="piece"></div></label>
-    <label for="p9"><div class="piece"></div></label>
-    <label for="p1"><div class="piece"></div></label>
-    <label for="p7"><div class="piece"></div></label>
-    <label for="p4"><div class="piece"></div></label>
-    <label for="p2"><div class="piece"></div></label>
-    <label for="p8"><div class="piece"></div></label>
-    <label for="p6"><div class="piece"></div></label>
-  </div>
+  <div class="message" id="message">💖 Tu as réussi ! Tu rends le monde plus beau, comme ce puzzle 💖</div>
 
-  <div class="message">
-    🌟 Tu es brillante et précieuse. Merci d’être toi 💖
-  </div>
+  <script>
+    const puzzle = document.getElementById('puzzle');
+    const message = document.getElementById('message');
+
+    const positions = [
+      '0px 0px', '-100px 0px', '-200px 0px',
+      '0px -100px', '-100px -100px', '-200px -100px',
+      '0px -200px', '-100px -200px', '-200px -200px'
+    ];
+
+    let pieces = positions.map((pos, index) => {
+      let div = document.createElement('div');
+      div.className = 'piece';
+      div.style.backgroundPosition = pos;
+      div.draggable = true;
+      div.dataset.index = index;
+      return div;
+    });
+
+    // Mélange
+    pieces.sort(() => Math.random() - 0.5);
+    pieces.forEach(piece => puzzle.appendChild(piece));
+
+    let dragged = null;
+
+    puzzle.addEventListener('dragstart', (e) => {
+      if (e.target.classList.contains('piece')) {
+        dragged = e.target;
+      }
+    });
+
+    puzzle.addEventListener('dragover', (e) => e.preventDefault());
+
+    puzzle.addEventListener('drop', (e) => {
+      if (e.target.classList.contains('piece') && dragged !== e.target) {
+        // Swap elements
+        let draggedIndex = Array.from(puzzle.children).indexOf(dragged);
+        let targetIndex = Array.from(puzzle.children).indexOf(e.target);
+
+        if (draggedIndex > -1 && targetIndex > -1) {
+          puzzle.insertBefore(dragged, puzzle.children[targetIndex]);
+          puzzle.insertBefore(e.target, puzzle.children[draggedIndex]);
+        }
+
+        checkWin();
+      }
+    });
+
+    function checkWin() {
+      const current = Array.from(puzzle.children);
+      const correct = current.every((el, i) => +el.dataset.index === i);
+      if (correct) {
+        message.classList.add('visible');
+      }
+    }
+  </script>
 </body>
 </html>

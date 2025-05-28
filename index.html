@@ -26,14 +26,13 @@
     .piece {
       width: 100px;
       height: 100px;
-      background-color: #eee;
-      background-image: url('https://i.postimg.cc/FK7r5VRR/IMG-20211031-174937.jpg');
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Tiger_in_Ranthambhore.jpg/300px-Tiger_in_Ranthambhore.jpg');
       background-size: 300px 300px;
-      background-position: center;
-      cursor: pointer;
+      background-color: #eee;
       border: 1px solid #ccc;
       transition: opacity 0.5s;
       opacity: 0;
+      cursor: pointer;
     }
 
     input[type="checkbox"] {
@@ -44,20 +43,37 @@
       display: block;
     }
 
-    input#p1:checked ~ .puzzle label[for="p1"] .piece { opacity: 1; background-position: 0px 0px; }
-    input#p2:checked ~ .puzzle label[for="p2"] .piece { opacity: 1; background-position: -100px 0px; }
-    input#p3:checked ~ .puzzle label[for="p3"] .piece { opacity: 1; background-position: -200px 0px; }
-    input#p4:checked ~ .puzzle label[for="p4"] .piece { opacity: 1; background-position: 0px -100px; }
-    input#p5:checked ~ .puzzle label[for="p5"] .piece { opacity: 1; background-position: -100px -100px; }
-    input#p6:checked ~ .puzzle label[for="p6"] .piece { opacity: 1; background-position: -200px -100px; }
-    input#p7:checked ~ .puzzle label[for="p7"] .piece { opacity: 1; background-position: 0px -200px; }
+    /* Bon ordre (chaque pièce à la bonne position) */
+    input#p1:checked ~ .puzzle label[for="p5"] .piece { opacity: 1; background-position: 0px 0px; }
+    input#p2:checked ~ .puzzle label[for="p3"] .piece { opacity: 1; background-position: -100px 0px; }
+    input#p3:checked ~ .puzzle label[for="p9"] .piece { opacity: 1; background-position: -200px 0px; }
+    input#p4:checked ~ .puzzle label[for="p1"] .piece { opacity: 1; background-position: 0px -100px; }
+    input#p5:checked ~ .puzzle label[for="p7"] .piece { opacity: 1; background-position: -100px -100px; }
+    input#p6:checked ~ .puzzle label[for="p4"] .piece { opacity: 1; background-position: -200px -100px; }
+    input#p7:checked ~ .puzzle label[for="p2"] .piece { opacity: 1; background-position: 0px -200px; }
     input#p8:checked ~ .puzzle label[for="p8"] .piece { opacity: 1; background-position: -100px -200px; }
-    input#p9:checked ~ .puzzle label[for="p9"] .piece { opacity: 1; background-position: -200px -200px; }
+    input#p9:checked ~ .puzzle label[for="p6"] .piece { opacity: 1; background-position: -200px -200px; }
+
+    .message {
+      margin-top: 30px;
+      font-size: 20px;
+      color: #b75454;
+      opacity: 0;
+      transition: opacity 1s;
+    }
+
+    input#p1:checked:checked ~ input#p2:checked:checked ~ input#p3:checked:checked ~
+    input#p4:checked:checked ~ input#p5:checked:checked ~ input#p6:checked:checked ~
+    input#p7:checked:checked ~ input#p8:checked:checked ~ input#p9:checked:checked ~
+    .message {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
   <h1>Assemble le puzzle pour découvrir la surprise 💞</h1>
 
+  <!-- Cases mélangées -->
   <input type="checkbox" id="p1">
   <input type="checkbox" id="p2">
   <input type="checkbox" id="p3">
@@ -69,15 +85,19 @@
   <input type="checkbox" id="p9">
 
   <div class="puzzle">
-    <label for="p1"><div class="piece"></div></label>
-    <label for="p2"><div class="piece"></div></label>
-    <label for="p3"><div class="piece"></div></label>
-    <label for="p4"><div class="piece"></div></label>
     <label for="p5"><div class="piece"></div></label>
-    <label for="p6"><div class="piece"></div></label>
-    <label for="p7"><div class="piece"></div></label>
-    <label for="p8"><div class="piece"></div></label>
+    <label for="p3"><div class="piece"></div></label>
     <label for="p9"><div class="piece"></div></label>
+    <label for="p1"><div class="piece"></div></label>
+    <label for="p7"><div class="piece"></div></label>
+    <label for="p4"><div class="piece"></div></label>
+    <label for="p2"><div class="piece"></div></label>
+    <label for="p8"><div class="piece"></div></label>
+    <label for="p6"><div class="piece"></div></label>
+  </div>
+
+  <div class="message">
+    🌟 Tu es brillante et précieuse. Merci d’être toi 💖
   </div>
 </body>
 </html>

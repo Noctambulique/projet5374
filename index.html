@@ -1,132 +1,112 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Test de personnalité — 18 critères</title>
-  <meta name="description" content="Questionnaire Likert 1–7 pour 18 critères, calcul et export.">
+  <meta charset="UTF-8">
+  <title>Test de personnalité</title>
   <style>
-    :root{
-      --bg: #0b0f14;
-      --card: #121821;
-      --text: #e8eef6;
-      --muted: #9fb1c7;
-      --accent: #68a0ff;
-      --border: #223044;
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      color: #333;
+      text-align: center;
+      padding: 30px;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background:var(--bg); color:var(--text); line-height:1.5;
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
     }
-    header{padding:32px 20px 10px; text-align:center}
-    h1{margin:0 0 6px; font-size:28px}
-    .subtitle{color:var(--muted); margin:0}
-    main{max-width:1100px; margin:20px auto; padding:0 20px}
-    .card{
-      background:var(--card); border:1px solid var(--border);
-      border-radius:16px; padding:18px; margin-bottom:16px; box-shadow:0 6px 16px rgba(0,0,0,.25);
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
     }
-    #questionnaire .criterion{
-      border-top:1px dashed var(--border); padding-top:12px; margin-top:12px;
+    .question {
+      font-size: 18px;
+      margin: 20px 0;
     }
-    .item{display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center; padding:8px 0}
-    .item small{color:var(--muted)}
-    .scale{display:flex; gap:6px}
-    .scale label{
-      display:flex; flex-direction:column; align-items:center; font-size:12px; color:var(--muted)
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
     }
-    .scale input{accent-color:var(--accent); cursor:pointer}
-    .badge{display:inline-block; border:1px solid var(--border); border-radius:999px; padding:2px 8px; font-size:12px; color:var(--muted)}
-    .actions{display:flex; gap:10px; justify-content:center; margin:16px 0}
-    button{
-      background:var(--accent); color:#001129; border:none; padding:10px 16px; border-radius:12px;
-      cursor:pointer; font-weight:600; box-shadow:0 4px 10px rgba(104,160,255,.25);
+    button:hover {
+      background: #45a049;
     }
-    button.ghost{background:transparent; color:var(--text); border:1px solid var(--border); box-shadow:none}
-    #scoresTable table{width:100%; border-collapse:collapse; margin-top:14px}
-    #scoresTable th,#scoresTable td{border-bottom:1px solid var(--border); padding:8px; text-align:left}
-    #scoresTable th{color:var(--muted); font-weight:600}
-    footer{opacity:.7; text-align:center; padding:24px}
-    .notice{color:var(--muted); font-size:12px; margin-top:8px}
+    .hidden {
+      display: none;
+    }
   </style>
-  <!-- Chart.js CDN pour le radar -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Test de personnalité — 18 critères</h1>
-    <p class="subtitle">Échelle Likert 1–7 (1 = Pas du tout d’accord, 7 = Tout à fait d’accord)</p>
-  </header>
-
-  <main>
-    <section id="intro" class="card">
-      <details>
-        <summary>À propos du test</summary>
-        <p>
-          Chaque critère est mesuré par plusieurs énoncés. Les items marqués (R) sont inversés au calcul.
-          Les scores finaux sont normalisés sur 100 et restitués sous forme de tableau et d’un radar.
-        </p>
-        <p class="notice">
-          Remarque : la liste fournie contenait 17 critères. Un 18ᵉ critère « Tolérance à l’ambiguïté » a été ajouté comme espace réservé — renommez-le à votre convenance.
-        </p>
-      </details>
-    </section>
-
-    <section id="questionnaire" class="card" aria-live="polite"></section>
-
-    <section id="actions" class="actions">
-      <button id="computeBtn">Calculer le profil</button>
-      <button id="resetBtn" class="ghost">Réinitialiser</button>
-    </section>
-
-    <section id="results" class="card" style="display:none;">
-      <h2>Résultats</h2>
-      <canvas id="radar" width="800" height="600" aria-label="Radar des scores"></canvas>
-      <div id="scoresTable"></div>
-      <div class="exports" style="display:flex; gap:8px; margin-top:12px;">
-        <button id="exportJsonBtn">Exporter JSON</button>
-        <button id="exportCsvBtn">Exporter CSV</button>
-        <button id="exportPngBtn">Exporter PNG</button>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <small>© 2025 — MIT • App statique, aucune donnée envoyée à un serveur.</small>
-  </footer>
+  <div class="container">
+    <h1>Test de personnalité</h1>
+    <div id="question-container">
+      <p id="question" class="question"></p>
+      <button onclick="answer('Oui')">Oui</button>
+      <button onclick="answer('Non')">Non</button>
+    </div>
+    <div id="result" class="hidden"></div>
+  </div>
 
   <script>
-    // =========================
-    // Données — 18 critères
-    // =========================
-    const CRITERIA = [
-      { id: "purete", label: "Notion de pureté",
-        definition: "Importance accordée à l’intégrité, au ‘propre’ vs ‘impur’, à la cohérence morale/esthétique.", weight: 1 },
+    const questions = [
+      "Avez-vous une notion forte de pureté ?",
+      "Vous intéressez-vous sincèrement aux autres ?",
+      "Êtes-vous transgressif(ve) par nature ?",
+      "Recherchez-vous toujours l’efficacité ?",
+      "Vous intéressez-vous aux forums de discussion ?",
+      "Avez-vous un intérêt esthétique marqué ?",
+      "Ressentez-vous le besoin d’un 'Ostrava' (protecteur/guide) ?",
+      "Avez-vous souvent été abandonné par autrui ?",
+      "Avez-vous une tendance à la nostalgie ?",
+      "Croyez-vous à un lien ferme au fond des choses ?",
+      "Aimez-vous créer des univers ?",
+      "Avez-vous été surprotégé(e) dans votre jeunesse ?",
+      "Avez-vous le goût du conflit et du chaos ?",
+      "Vous sentez-vous marginal(e) ?",
+      "Vous rapprochez-vous du type 'Ange ISXJ' ?",
+      "Considérez-vous la Femme comme un Guide idéal ?",
+      "Votre ego est-il important pour vous ?",
+      "Pensez-vous correspondre à ce profil globalement ?"
+    ];
 
-      { id: "altruisme", label: "Intérêt pour autrui",
-        definition: "Disposition à se soucier des besoins d’autrui, empathie et prosocialité.", weight: 1 },
+    let currentQuestion = 0;
+    let answers = [];
 
-      { id: "transgressif", label: "Transgressif",
-        definition: "Attraction pour la transgression des normes, goût de l’irrévérence.", weight: 1 },
+    function showQuestion() {
+      document.getElementById("question").innerText = questions[currentQuestion];
+    }
 
-      { id: "efficacite", label: "Efficacité",
-        definition: "Orientation vers les résultats, pragmatisme, optimisation des moyens.", weight: 1 },
+    function answer(response) {
+      answers.push({question: questions[currentQuestion], answer: response});
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
 
-      { id: "forums", label: "Intérêt pour les forums",
-        definition: "Implication dans les communautés en ligne, préférence pour l’échange textuel public.", weight: 1 },
+    function showResult() {
+      document.getElementById("question-container").classList.add("hidden");
+      const resultDiv = document.getElementById("result");
+      resultDiv.classList.remove("hidden");
+      resultDiv.innerHTML = "<h2>Résultats</h2>";
+      answers.forEach((item, i) => {
+        resultDiv.innerHTML += `<p><strong>Q${i+1}:</strong> ${item.question}<br>Réponse: ${item.answer}</p>`;
+      });
+    }
 
-      { id: "esthetique", label: "Intérêt esthétique",
-        definition: "Sensibilité au beau, à la forme, aux textures et à la composition.", weight: 1 },
-
-      { id: "ostrava", label: "Besoin d’un Ostrava",
-        definition: "Besoin d’une figure repère/étalon (mentor-critique ‘Ostrava’) pour se situer et se dépasser.", weight: 1 },
-
-      { id: "abandon", label: "Abandon régulier par autrui",
-        definition: "Expérience récurrente d’abandon et schèmes relationnels associés (anticipation, auto-protection).", weight: 1 },
-
-      { id: "nostalgie", label: "Tendance à la nostalgie",
-        definition: "Orientation vers le passé, valorisation des souvenirs et des âges ‘dorés’.", weight: 1 },
-
-      { id: "lien_fond", label: "Croyance lien ferme/fond",
-        definition: "Croyance qu’un noyau fondamental relie les choses (métaphysique du ‘f
+    // Affiche la première question
+    showQuestion();
+  </script>
+</body>
+</html>

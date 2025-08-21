@@ -50,43 +50,43 @@
     <h1>Test de personnalité</h1>
     <div id="question-container">
       <p id="question" class="question"></p>
-      <button onclick="answer('Oui')">Oui</button>
-      <button onclick="answer('Non')">Non</button>
+      <button onclick="answer(true)">Oui</button>
+      <button onclick="answer(false)">Non</button>
     </div>
     <div id="result" class="hidden"></div>
   </div>
 
   <script>
     const questions = [
-      "Avez-vous une notion forte de pureté ?",
-      "Vous intéressez-vous sincèrement aux autres ?",
-      "Êtes-vous transgressif(ve) par nature ?",
-      "Recherchez-vous toujours l’efficacité ?",
-      "Vous intéressez-vous aux forums de discussion ?",
-      "Avez-vous un intérêt esthétique marqué ?",
-      "Ressentez-vous le besoin d’un 'Ostrava' (protecteur/guide) ?",
-      "Avez-vous souvent été abandonné par autrui ?",
-      "Avez-vous une tendance à la nostalgie ?",
-      "Croyez-vous à un lien ferme au fond des choses ?",
-      "Aimez-vous créer des univers ?",
-      "Avez-vous été surprotégé(e) dans votre jeunesse ?",
-      "Avez-vous le goût du conflit et du chaos ?",
-      "Vous sentez-vous marginal(e) ?",
-      "Vous rapprochez-vous du type 'Ange ISXJ' ?",
-      "Considérez-vous la Femme comme un Guide idéal ?",
-      "Votre ego est-il important pour vous ?",
-      "Pensez-vous correspondre à ce profil globalement ?"
+      "Notion de pureté",
+      "Intérêt pour autrui",
+      "Transgressif",
+      "Efficacité",
+      "Intérêt pour les forums",
+      "Intérêt esthétique",
+      "Besoin d’un Ostrava",
+      "Abandon régulier par autrui",
+      "Tendance à la nostalgie",
+      "Croyance lien ferme/fond",
+      "Créateur d’univers",
+      "Surprotégé jeune",
+      "Goût pour le conflit et le chaos",
+      "Marginalité",
+      "Ange ISXJ",
+      "Idéal Femme Guide",
+      "Ego",
+      "Tolérance à l’ambiguïté"
     ];
 
     let currentQuestion = 0;
-    let answers = [];
+    let score = 0;
 
     function showQuestion() {
       document.getElementById("question").innerText = questions[currentQuestion];
     }
 
-    function answer(response) {
-      answers.push({question: questions[currentQuestion], answer: response});
+    function answer(isYes) {
+      if(isYes) score++; // Chaque "Oui" vaut 1 point
       currentQuestion++;
       if (currentQuestion < questions.length) {
         showQuestion();
@@ -99,13 +99,11 @@
       document.getElementById("question-container").classList.add("hidden");
       const resultDiv = document.getElementById("result");
       resultDiv.classList.remove("hidden");
-      resultDiv.innerHTML = "<h2>Résultats</h2>";
-      answers.forEach((item, i) => {
-        resultDiv.innerHTML += `<p><strong>Q${i+1}:</strong> ${item.question}<br>Réponse: ${item.answer}</p>`;
-      });
+      resultDiv.innerHTML = `<h2>Résultats</h2>
+        <p>Vous correspondez à <strong>${score}</strong> sur ${questions.length} critères.</p>
+        <p>Pourcentage : <strong>${((score/questions.length)*100).toFixed(1)}%</strong></p>`;
     }
 
-    // Affiche la première question
     showQuestion();
   </script>
 </body>

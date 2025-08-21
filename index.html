@@ -1,115 +1,132 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Puzzle interactif</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Test de personnalité — 18 critères</title>
+  <meta name="description" content="Questionnaire Likert 1–7 pour 18 critères, calcul et export.">
   <style>
-    body {
-      background: #fff9f4;
-      font-family: sans-serif;
-      text-align: center;
-      padding: 40px;
+    :root{
+      --bg: #0b0f14;
+      --card: #121821;
+      --text: #e8eef6;
+      --muted: #9fb1c7;
+      --accent: #68a0ff;
+      --border: #223044;
     }
-
-    h1 {
-      color: #d37d7d;
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.5;
     }
-
-    .puzzle {
-      display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
-      gap: 4px;
-      justify-content: center;
-      margin: 20px auto;
-      width: 312px; /* 3*100px + 2*4px */
+    header{padding:32px 20px 10px; text-align:center}
+    h1{margin:0 0 6px; font-size:28px}
+    .subtitle{color:var(--muted); margin:0}
+    main{max-width:1100px; margin:20px auto; padding:0 20px}
+    .card{
+      background:var(--card); border:1px solid var(--border);
+      border-radius:16px; padding:18px; margin-bottom:16px; box-shadow:0 6px 16px rgba(0,0,0,.25);
     }
-
-    .piece {
-      width: 100px;
-      height: 100px;
-      background-image: url('https://i.postimg.cc/FK7r5VRR/IMG-20211031-174937.jpg');
-      background-size: 300px 300px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-      cursor: grab;
+    #questionnaire .criterion{
+      border-top:1px dashed var(--border); padding-top:12px; margin-top:12px;
     }
-
-    .message {
-      opacity: 0;
-      transition: opacity 1s;
-      font-size: 18px;
-      color: #b75454;
-      margin-top: 30px;
+    .item{display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center; padding:8px 0}
+    .item small{color:var(--muted)}
+    .scale{display:flex; gap:6px}
+    .scale label{
+      display:flex; flex-direction:column; align-items:center; font-size:12px; color:var(--muted)
     }
-
-    .visible {
-      opacity: 1;
+    .scale input{accent-color:var(--accent); cursor:pointer}
+    .badge{display:inline-block; border:1px solid var(--border); border-radius:999px; padding:2px 8px; font-size:12px; color:var(--muted)}
+    .actions{display:flex; gap:10px; justify-content:center; margin:16px 0}
+    button{
+      background:var(--accent); color:#001129; border:none; padding:10px 16px; border-radius:12px;
+      cursor:pointer; font-weight:600; box-shadow:0 4px 10px rgba(104,160,255,.25);
     }
+    button.ghost{background:transparent; color:var(--text); border:1px solid var(--border); box-shadow:none}
+    #scoresTable table{width:100%; border-collapse:collapse; margin-top:14px}
+    #scoresTable th,#scoresTable td{border-bottom:1px solid var(--border); padding:8px; text-align:left}
+    #scoresTable th{color:var(--muted); font-weight:600}
+    footer{opacity:.7; text-align:center; padding:24px}
+    .notice{color:var(--muted); font-size:12px; margin-top:8px}
   </style>
+  <!-- Chart.js CDN pour le radar -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <h1>Assemble le puzzle 🧩</h1>
+  <header>
+    <h1>Test de personnalité — 18 critères</h1>
+    <p class="subtitle">Échelle Likert 1–7 (1 = Pas du tout d’accord, 7 = Tout à fait d’accord)</p>
+  </header>
 
-  <div class="puzzle" id="puzzle"></div>
+  <main>
+    <section id="intro" class="card">
+      <details>
+        <summary>À propos du test</summary>
+        <p>
+          Chaque critère est mesuré par plusieurs énoncés. Les items marqués (R) sont inversés au calcul.
+          Les scores finaux sont normalisés sur 100 et restitués sous forme de tableau et d’un radar.
+        </p>
+        <p class="notice">
+          Remarque : la liste fournie contenait 17 critères. Un 18ᵉ critère « Tolérance à l’ambiguïté » a été ajouté comme espace réservé — renommez-le à votre convenance.
+        </p>
+      </details>
+    </section>
 
-  <div class="message" id="message">💖 Tu as réussi ! Tu rends le monde plus beau, comme ce puzzle 💖</div>
+    <section id="questionnaire" class="card" aria-live="polite"></section>
+
+    <section id="actions" class="actions">
+      <button id="computeBtn">Calculer le profil</button>
+      <button id="resetBtn" class="ghost">Réinitialiser</button>
+    </section>
+
+    <section id="results" class="card" style="display:none;">
+      <h2>Résultats</h2>
+      <canvas id="radar" width="800" height="600" aria-label="Radar des scores"></canvas>
+      <div id="scoresTable"></div>
+      <div class="exports" style="display:flex; gap:8px; margin-top:12px;">
+        <button id="exportJsonBtn">Exporter JSON</button>
+        <button id="exportCsvBtn">Exporter CSV</button>
+        <button id="exportPngBtn">Exporter PNG</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>© 2025 — MIT • App statique, aucune donnée envoyée à un serveur.</small>
+  </footer>
 
   <script>
-    const puzzle = document.getElementById('puzzle');
-    const message = document.getElementById('message');
+    // =========================
+    // Données — 18 critères
+    // =========================
+    const CRITERIA = [
+      { id: "purete", label: "Notion de pureté",
+        definition: "Importance accordée à l’intégrité, au ‘propre’ vs ‘impur’, à la cohérence morale/esthétique.", weight: 1 },
 
-    const positions = [
-      '0px 0px', '-100px 0px', '-200px 0px',
-      '0px -100px', '-100px -100px', '-200px -100px',
-      '0px -200px', '-100px -200px', '-200px -200px'
-    ];
+      { id: "altruisme", label: "Intérêt pour autrui",
+        definition: "Disposition à se soucier des besoins d’autrui, empathie et prosocialité.", weight: 1 },
 
-    let pieces = positions.map((pos, index) => {
-      let div = document.createElement('div');
-      div.className = 'piece';
-      div.style.backgroundPosition = pos;
-      div.draggable = true;
-      div.dataset.index = index;
-      return div;
-    });
+      { id: "transgressif", label: "Transgressif",
+        definition: "Attraction pour la transgression des normes, goût de l’irrévérence.", weight: 1 },
 
-    // Mélange
-    pieces.sort(() => Math.random() - 0.5);
-    pieces.forEach(piece => puzzle.appendChild(piece));
+      { id: "efficacite", label: "Efficacité",
+        definition: "Orientation vers les résultats, pragmatisme, optimisation des moyens.", weight: 1 },
 
-    let dragged = null;
+      { id: "forums", label: "Intérêt pour les forums",
+        definition: "Implication dans les communautés en ligne, préférence pour l’échange textuel public.", weight: 1 },
 
-    puzzle.addEventListener('dragstart', (e) => {
-      if (e.target.classList.contains('piece')) {
-        dragged = e.target;
-      }
-    });
+      { id: "esthetique", label: "Intérêt esthétique",
+        definition: "Sensibilité au beau, à la forme, aux textures et à la composition.", weight: 1 },
 
-    puzzle.addEventListener('dragover', (e) => e.preventDefault());
+      { id: "ostrava", label: "Besoin d’un Ostrava",
+        definition: "Besoin d’une figure repère/étalon (mentor-critique ‘Ostrava’) pour se situer et se dépasser.", weight: 1 },
 
-    puzzle.addEventListener('drop', (e) => {
-      if (e.target.classList.contains('piece') && dragged !== e.target) {
-        // Swap elements
-        let draggedIndex = Array.from(puzzle.children).indexOf(dragged);
-        let targetIndex = Array.from(puzzle.children).indexOf(e.target);
+      { id: "abandon", label: "Abandon régulier par autrui",
+        definition: "Expérience récurrente d’abandon et schèmes relationnels associés (anticipation, auto-protection).", weight: 1 },
 
-        if (draggedIndex > -1 && targetIndex > -1) {
-          puzzle.insertBefore(dragged, puzzle.children[targetIndex]);
-          puzzle.insertBefore(e.target, puzzle.children[draggedIndex]);
-        }
+      { id: "nostalgie", label: "Tendance à la nostalgie",
+        definition: "Orientation vers le passé, valorisation des souvenirs et des âges ‘dorés’.", weight: 1 },
 
-        checkWin();
-      }
-    });
-
-    function checkWin() {
-      const current = Array.from(puzzle.children);
-      const correct = current.every((el, i) => +el.dataset.index === i);
-      if (correct) {
-        message.classList.add('visible');
-      }
-    }
-  </script>
-</body>
-</html>
+      { id: "lien_fond", label: "Croyance lien ferme/fond",
+        definition: "Croyance qu’un noyau fondamental relie les choses (métaphysique du ‘f

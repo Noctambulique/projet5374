@@ -58,24 +58,22 @@
 
   <script>
     const questions = [
-      "Notion de pureté",
-      "Intérêt pour autrui",
-      "Transgressif",
-      "Efficacité",
-      "Intérêt pour les forums",
-      "Intérêt esthétique",
-      "Besoin d’un Ostrava",
-      "Abandon régulier par autrui",
-      "Tendance à la nostalgie",
-      "Croyance lien ferme/fond",
-      "Créateur d’univers",
-      "Surprotégé jeune",
-      "Goût pour le conflit et le chaos",
-      "Marginalité",
-      "Ange ISXJ",
-      "Idéal Femme Guide",
-      "Ego",
-      "Tolérance à l’ambiguïté"
+      "Je m'intéresse à l'humain",
+      "J'ai un rapport particulier à la transgression",
+      "Les gens manquent d'efficacité",
+      "Les forums sont un lieu d'échange intéressant",
+      "L'esthétique est très importante",
+      "J'ai souvent vécu avec un Watson",
+      "Je me fais souvent trahir",
+      "J'ai des tendances nostalgiques",
+      "La notion de pureté a ou a eu un jour de l'importance pour moi",
+      "Il y a un lien entre forme et fond",
+      "J'aime créer des univers",
+      "J'ai un goût pour le conflit et le chaos",
+      "Je me considère comme marinal",
+      "Longtemps, je me suis laissé guider par le regard du sexe opposé",
+      "Les gens disent que j'ai de l'ego",
+      "Les gens introvertis m'apprécient"
     ];
 
     let currentQuestion = 0;
@@ -100,7 +98,7 @@
       const resultDiv = document.getElementById("result");
       resultDiv.classList.remove("hidden");
       resultDiv.innerHTML = `<h2>Résultats</h2>
-        <p>Vous correspondez à <strong>${score}</strong> sur ${questions.length} critères.</p>
+        <p>Votre score est de <strong>${score}</strong>.</p>
         <p>Pourcentage : <strong>${((score/questions.length)*100).toFixed(1)}%</strong></p>`;
     }
 

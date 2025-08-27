@@ -98,7 +98,7 @@
     const questions = [
       "J'ai un intérêt particulier pour l'humain",
       "Les gens manquent d'efficacité, c'est un vrai problème",
-      "Les forums sont un lieu d'échange intéressant",
+      "Les forums sont un lieu d'échange intéressants",
       "L'esthétique est très importante",
       "J'ai souvent vécu avec un Watson",
       "Je me fais souvent trahir",
@@ -154,8 +154,6 @@
 
       resultDiv.innerHTML = `
         <h2>Résultats</h2>
-        <p>Votre score est de <strong>${score}</strong> sur ${questions.length}.</p>
-        <p>Pourcentage : <strong>${percentage.toFixed(1)}%</strong></p>
         <div class="grade ${grade}">${grade}</div>
       `;
     }

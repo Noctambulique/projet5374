@@ -1,174 +1,102 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Convertisseur PPTX → HTML (client-side)</title>
-  <style>
-    body{font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding:20px;}
-    .controls{margin-bottom:18px}
-    .slide{border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.08); padding:18px; margin-bottom:18px; background:white}
-    .slide h2{margin:0 0 6px}
-    .slides-wrapper{display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px}
-    .img-slide{max-width:100%; height:auto; display:block; margin-top:8px}
-    pre{background:#f6f6f6;padding:12px;border-radius:8px; overflow:auto}
-    .note{color:#555; font-size:0.95rem}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convertisseur ODP → HTML</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+.controls { margin-bottom: 20px; }
+.slide { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+.slide h2 { margin-top: 0; }
+.img-slide { max-width: 100%; margin-top: 10px; }
+</style>
 </head>
 <body>
-  <h1>Convertisseur PowerPoint (.pptx) → pages HTML (client-side)</h1>
-  <div class="controls">
-    <input id="file" type="file" accept=".pptx" />
-    <button id="convert">Convertir</button>
-    <div class="note">Sélectionnez un fichier .pptx ; tout est traité dans votre navigateur (aucun envoi sur un serveur).</div>
-  </div>
+<h1>Convertisseur ODP → HTML (client-side)</h1>
+<div class="controls">
+  <input type="file" id="file" accept=".odp">
+  <button id="convert">Convertir</button>
+</div>
+<div id="status"></div>
+<div id="slides"></div>
 
-  <div id="status"></div>
-  <div id="slides" class="slides-wrapper"></div>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+const fileInput = document.getElementById('file');
+const convertBtn = document.getElementById('convert');
+const slidesContainer = document.getElementById('slides');
+const status = document.getElementById('status');
 
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script>
-    // NOTE: solution simple, fonctionne pour la majorité des .pptx modernes.
-    // Limitations : ne préserve pas la mise en page exacte (positions x/y), animations, polices embarquées, ou formes complexes.
+function setStatus(msg){ status.textContent = msg; }
 
-    const fileInput = document.getElementById('file');
-    const convertBtn = document.getElementById('convert');
-    const slidesContainer = document.getElementById('slides');
-    const status = document.getElementById('status');
+convertBtn.addEventListener('click', async ()=>{
+  const f = fileInput.files[0];
+  if(!f) return alert('Choisissez un fichier .odp');
+  setStatus('Lecture du fichier...');
+  slidesContainer.innerHTML = '';
 
-    function setStatus(msg){ status.textContent = msg }
+  try{
+    const arrayBuffer = await f.arrayBuffer();
+    const zip = await JSZip.loadAsync(arrayBuffer);
 
-    convertBtn.addEventListener('click', async ()=>{
-      const f = fileInput.files[0];
-      if(!f) return alert('Choisissez un fichier .pptx');
-      setStatus('Lecture du fichier...');
-      slidesContainer.innerHTML = '';
-      try{
-        const arrayBuffer = await f.arrayBuffer();
-        const zip = await JSZip.loadAsync(arrayBuffer);
+    if(!zip.files['content.xml']) return setStatus('Fichier invalide : content.xml manquant');
 
-        // Récupère la liste des slides
-        const slideFiles = Object.keys(zip.files).filter(p => /^ppt\/slides\/slide\d+\.xml$/.test(p)).sort((a,b)=>{
-          const na = parseInt(a.match(/slide(\d+)\.xml/)[1]);
-          const nb = parseInt(b.match(/slide(\d+)\.xml/)[1]);
-          return na-nb;
-        });
+    const contentXml = await zip.files['content.xml'].async('string');
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(contentXml,'application/xml');
 
-        if(slideFiles.length===0){ setStatus('Aucune slide trouvée dans ce .pptx'); return }
+    const slideNodes = Array.from(doc.getElementsByTagName('draw:page'));
+    setStatus(`Extraction de ${slideNodes.length} slides...`);
 
-        // Précharger médias (images)
-        const mediaFiles = Object.keys(zip.files).filter(p => /^ppt\/media\//.test(p));
-        const mediaBlobs = {};
-        await Promise.all(mediaFiles.map(async path=>{
-          const file = zip.files[path];
-          const blob = await file.async('blob');
-          mediaBlobs[path] = URL.createObjectURL(blob);
-        }));
+    for(let i=0;i<slideNodes.length;i++){
+      const slideNode = slideNodes[i];
+      const s = document.createElement('article');
+      s.className = 'slide';
+      const h = document.createElement('h2');
+      h.textContent = slideNode.getAttribute('draw:name') || `Slide ${i+1}`;
+      s.appendChild(h);
 
-        setStatus(`Extraction de ${slideFiles.length} slides...`);
-
-        for(const slidePath of slideFiles){
-          const slideXmlText = await zip.files[slidePath].async('string');
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(slideXmlText,'application/xml');
-
-          // Texte : recherche de tous les éléments a:t (texte dans formes)
-          const textNodes = Array.from(doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/main','t'))
-                                .concat(Array.from(doc.getElementsByTagName('a:t')));
-
-          const texts = textNodes.map(n => n.textContent.trim()).filter(s=>s.length>0);
-
-          // Images : il faut lire la relation (r:embed) dans les picts
-          const relsPath = slidePath.replace('ppt/slides/','ppt/slides/_rels/') + '.rels';
-          let relsDoc = null;
-          const imageSrcs = [];
-          if(zip.files[relsPath]){
-            const relsText = await zip.files[relsPath].async('string');
-            relsDoc = parser.parseFromString(relsText,'application/xml');
-            // map of Id -> Target
-            const relElems = Array.from(relsDoc.getElementsByTagName('Relationship'))
-                             .concat(Array.from(relsDoc.getElementsByTagName('Relationship')));
-            const relMap = {};
-            relElems.forEach(r=>{
-              const id = r.getAttribute('Id') || r.getAttribute('Id');
-              const target = r.getAttribute('Target') || r.getAttribute('Target');
-              if(id && target) relMap[id] = target;
-            });
-
-            // In slide xml, find all <p:pic> with a:blip r:embed
-            const picElements = Array.from(doc.getElementsByTagName('p:pic'))
-                                .concat(Array.from(doc.getElementsByTagName('pic:pic')));
-            // fallback: find all 'blip' elements with embed
-            const blips = Array.from(doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/main','blip'))
-                        .concat(Array.from(doc.getElementsByTagName('a:blip')));
-
-            const embedIds = new Set();
-            blips.forEach(b=>{
-              const embed = b.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','embed') || b.getAttribute('r:embed');
-              if(embed) embedIds.add(embed);
-            });
-
-            for(const id of embedIds){
-              let target = relMap[id];
-              if(target){
-                // target is relative path like "../media/image1.png" -> normalize to ppt/media/image1.png
-                target = target.replace(/^\.\./, 'ppt');
-                if(!target.startsWith('ppt/')) target = 'ppt/' + target.replace(/^\/+/, '');
-                if(mediaBlobs[target]) imageSrcs.push(mediaBlobs[target]);
-                else if(zip.files[target]){
-                  const blob = await zip.files[target].async('blob');
-                  imageSrcs.push(URL.createObjectURL(blob));
-                }
-              }
-            }
-          }
-
-          // Crée une carte de slide HTML
-          const s = document.createElement('article');
-          s.className = 'slide';
-          const h = document.createElement('h2');
-          h.textContent = slidePath.split('/').pop();
-          s.appendChild(h);
-
-          if(texts.length){
-            texts.forEach(t=>{
-              const p = document.createElement('p');
-              p.textContent = t;
-              s.appendChild(p);
-            });
-          } else {
-            const p = document.createElement('p'); p.textContent = '(aucun texte détecté)'; p.style.opacity=0.7; s.appendChild(p);
-          }
-
-          if(imageSrcs.length){
-            imageSrcs.forEach(src=>{
-              const img = document.createElement('img');
-              img.src = src; img.className = 'img-slide';
-              s.appendChild(img);
-            });
-          }
-
-          // bouton pour télécharger la slide en HTML séparée
-          const dlBtn = document.createElement('button');
-          dlBtn.textContent = 'Télécharger cette slide en HTML';
-          dlBtn.style.marginTop = '10px';
-          dlBtn.addEventListener('click', ()=>{
-            const blob = new Blob([`<html><head><meta charset=\"utf-8\"></head><body>${s.innerHTML}</body></html>`], {type:'text/html'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = slidePath.replace('/','_') + '.html';
-            a.click(); URL.revokeObjectURL(url);
-          });
-          s.appendChild(dlBtn);
-
-          slidesContainer.appendChild(s);
-        }
-
-        setStatus('Conversion terminée — voyez les slides ci‑dessous.');
-      }catch(err){
-        console.error(err);
-        setStatus('Erreur: ' + (err.message || err));
+      // Texte
+      const texts = Array.from(slideNode.getElementsByTagName('text:p')).map(n=>n.textContent.trim()).filter(t=>t.length>0);
+      if(texts.length){
+        texts.forEach(t=>{ const p=document.createElement('p'); p.textContent=t; s.appendChild(p); });
+      } else {
+        const p = document.createElement('p'); p.textContent='(aucun texte détecté)'; p.style.opacity=0.7; s.appendChild(p);
       }
-    });
-  </script>
+
+      // Images
+      const imgNodes = Array.from(slideNode.getElementsByTagName('draw:image'));
+      for(const imgNode of imgNodes){
+        const href = imgNode.getAttribute('xlink:href');
+        if(href && zip.files[href.replace(/^\//,'')]){
+          const blob = await zip.files[href.replace(/^\//,'')].async('blob');
+          const url = URL.createObjectURL(blob);
+          const img = document.createElement('img'); img.src = url; img.className='img-slide';
+          s.appendChild(img);
+        }
+      }
+
+      // Bouton pour télécharger HTML de la slide
+      const dlBtn = document.createElement('button');
+      dlBtn.textContent='Télécharger cette slide en HTML';
+      dlBtn.style.marginTop='10px';
+      dlBtn.addEventListener('click',()=>{
+        const blob = new Blob([`<html><head><meta charset=\"utf-8\"></head><body>${s.innerHTML}</body></html>`],{type:'text/html'});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`slide_${i+1}.html`; a.click();
+      });
+      s.appendChild(dlBtn);
+
+      slidesContainer.appendChild(s);
+    }
+
+    setStatus('Conversion terminée.');
+
+  }catch(err){
+    console.error(err);
+    setStatus('Erreur : ' + (err.message || err));
+  }
+});
+</script>
 </body>
 </html>

@@ -8,7 +8,6 @@
 body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
 .controls { margin-bottom: 20px; }
 .slide { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-.slide h2 { margin-top: 0; }
 .img-slide { max-width: 100%; margin-top: 10px; }
 </style>
 </head>
@@ -53,7 +52,7 @@ convertBtn.addEventListener('click', async ()=>{
 
     for(let i=0;i<slideNodes.length;i++){
       const slideNode = slideNodes[i];
-      let slideHTML = `<article class=\"slide\"><h2>${slideNode.getAttribute('draw:name') || `Slide ${i+1}`}</h2>`;
+      let slideHTML = `<article class=\"slide\">`;
 
       // Texte
       const texts = Array.from(slideNode.getElementsByTagName('text:p')).map(n=>n.textContent.trim()).filter(t=>t.length>0);

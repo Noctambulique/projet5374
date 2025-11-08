@@ -49,20 +49,18 @@ convertBtn.addEventListener('click', async ()=>{
     const slideNodes = Array.from(doc.getElementsByTagName('draw:page'));
     setStatus(`Extraction de ${slideNodes.length} slides...`);
 
+    const allSlidesHTML = [];
+
     for(let i=0;i<slideNodes.length;i++){
       const slideNode = slideNodes[i];
-      const s = document.createElement('article');
-      s.className = 'slide';
-      const h = document.createElement('h2');
-      h.textContent = slideNode.getAttribute('draw:name') || `Slide ${i+1}`;
-      s.appendChild(h);
+      let slideHTML = `<article class=\"slide\"><h2>${slideNode.getAttribute('draw:name') || `Slide ${i+1}`}</h2>`;
 
       // Texte
       const texts = Array.from(slideNode.getElementsByTagName('text:p')).map(n=>n.textContent.trim()).filter(t=>t.length>0);
       if(texts.length){
-        texts.forEach(t=>{ const p=document.createElement('p'); p.textContent=t; s.appendChild(p); });
+        texts.forEach(t=>{ slideHTML += `<p>${t}</p>`; });
       } else {
-        const p = document.createElement('p'); p.textContent='(aucun texte détecté)'; p.style.opacity=0.7; s.appendChild(p);
+        slideHTML += `<p style=\"opacity:0.7\">(aucun texte détecté)</p>`;
       }
 
       // Images
@@ -72,23 +70,26 @@ convertBtn.addEventListener('click', async ()=>{
         if(href && zip.files[href.replace(/^\//,'')]){
           const blob = await zip.files[href.replace(/^\//,'')].async('blob');
           const url = URL.createObjectURL(blob);
-          const img = document.createElement('img'); img.src = url; img.className='img-slide';
-          s.appendChild(img);
+          slideHTML += `<img src=\"${url}\" class=\"img-slide\">`;
         }
       }
 
-      // Bouton pour télécharger HTML de la slide
-      const dlBtn = document.createElement('button');
-      dlBtn.textContent='Télécharger cette slide en HTML';
-      dlBtn.style.marginTop='10px';
-      dlBtn.addEventListener('click',()=>{
-        const blob = new Blob([`<html><head><meta charset=\"utf-8\"></head><body>${s.innerHTML}</body></html>`],{type:'text/html'});
-        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`slide_${i+1}.html`; a.click();
-      });
-      s.appendChild(dlBtn);
-
-      slidesContainer.appendChild(s);
+      slideHTML += '</article>';
+      allSlidesHTML.push(slideHTML);
     }
+
+    // Affiche toutes les slides
+    slidesContainer.innerHTML = allSlidesHTML.join('');
+
+    // Bouton pour télécharger toutes les slides en un seul fichier HTML
+    const dlAllBtn = document.createElement('button');
+    dlAllBtn.textContent = 'Télécharger toutes les slides en un seul HTML';
+    dlAllBtn.style.marginBottom = '20px';
+    dlAllBtn.addEventListener('click',()=>{
+      const blob = new Blob([`<html><head><meta charset=\"utf-8\"></head><body>${allSlidesHTML.join('')}</body></html>`],{type:'text/html'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='toutes_slides.html'; a.click();
+    });
+    slidesContainer.prepend(dlAllBtn);
 
     setStatus('Conversion terminée.');
 

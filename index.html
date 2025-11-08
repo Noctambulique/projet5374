@@ -1,164 +1,174 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Test de personnalité</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Convertisseur PPTX → HTML (client-side)</title>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #333;
-      text-align: center;
-      padding: 40px;
-    }
-    .container {
-      max-width: 650px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-      animation: fadeIn 0.8s ease-in-out;
-    }
-    h1 {
-      font-size: 28px;
-      margin-bottom: 25px;
-      color: #444;
-    }
-    .question {
-      font-size: 20px;
-      margin: 25px 0;
-      font-weight: 500;
-    }
-    button {
-      margin: 10px;
-      padding: 12px 25px;
-      font-size: 16px;
-      border: none;
-      border-radius: 10px;
-      background: #667eea;
-      color: white;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    button:hover {
-      background: #5a67d8;
-      transform: scale(1.05);
-    }
-    .hidden {
-      display: none;
-    }
-    #result h2 {
-      font-size: 26px;
-      margin-bottom: 15px;
-      color: #222;
-    }
-    #result p {
-      font-size: 18px;
-      margin: 8px 0;
-    }
-    .grade {
-      font-size: 40px;
-      font-weight: bold;
-      margin-top: 15px;
-      padding: 10px 20px;
-      border-radius: 12px;
-      display: inline-block;
-      animation: pop 0.6s ease-in-out;
-    }
-    .A { background: #f56565; color: white; }
-    .B { background: #ed8936; color: white; }
-    .C { background: #ecc94b; color: #333; }
-    .D { background: #48bb78; color: white; }
-    .E { background: #4299e1; color: white; }
-    .F { background: #9f7aea; color: white; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes pop {
-      0% { transform: scale(0.7); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
+    body{font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding:20px;}
+    .controls{margin-bottom:18px}
+    .slide{border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.08); padding:18px; margin-bottom:18px; background:white}
+    .slide h2{margin:0 0 6px}
+    .slides-wrapper{display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px}
+    .img-slide{max-width:100%; height:auto; display:block; margin-top:8px}
+    pre{background:#f6f6f6;padding:12px;border-radius:8px; overflow:auto}
+    .note{color:#555; font-size:0.95rem}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Test de personnalité</h1>
-    <div id="question-container">
-      <p id="question" class="question"></p>
-      <button onclick="answer(true)">Oui</button>
-      <button onclick="answer(false)">Non</button>
-    </div>
-    <div id="result" class="hidden"></div>
+  <h1>Convertisseur PowerPoint (.pptx) → pages HTML (client-side)</h1>
+  <div class="controls">
+    <input id="file" type="file" accept=".pptx" />
+    <button id="convert">Convertir</button>
+    <div class="note">Sélectionnez un fichier .pptx ; tout est traité dans votre navigateur (aucun envoi sur un serveur).</div>
   </div>
 
+  <div id="status"></div>
+  <div id="slides" class="slides-wrapper"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script>
-    const questions = [
-      "J'ai un intérêt particulier pour l'humain",
-      "Les gens manquent d'efficacité, c'est un vrai problème",
-      "Les forums sont un lieu d'échange intéressants",
-      "L'esthétique est très importante",
-      "J'ai souvent vécu avec un Watson",
-      "Je me fais souvent trahir",
-      "J'ai des tendances nostalgiques",
-      "La notion de pureté a ou a eu un jour de l'importance pour moi",
-      "Il y a un lien entre forme et fond",
-      "J'aime créer des univers dans la réalité",
-      "J'ai un rapport particulier à la transgression",
-      "J'ai un goût pour le conflit et le chaos",
-      "Je me considère comme marginal",
-      "La notion de puissance me parle",
-      "Longtemps, je me suis laissé guider par le regard du sexe opposé",
-      "Les gens disent que j'ai de l'ego",
-      "Les gens introvertis m'apprécient",
-      "Malgré moi, j'ai souvent une posture enseignante",
-      "Mes émotions et sentiments ne me débordent jamais",
-      "Je ne crains jamais le contact d'autrui"
-    ];
+    // NOTE: solution simple, fonctionne pour la majorité des .pptx modernes.
+    // Limitations : ne préserve pas la mise en page exacte (positions x/y), animations, polices embarquées, ou formes complexes.
 
-    let currentQuestion = 0;
-    let score = 0;
+    const fileInput = document.getElementById('file');
+    const convertBtn = document.getElementById('convert');
+    const slidesContainer = document.getElementById('slides');
+    const status = document.getElementById('status');
 
-    function showQuestion() {
-      document.getElementById("question").innerText = questions[currentQuestion];
-    }
+    function setStatus(msg){ status.textContent = msg }
 
-    function answer(isYes) {
-      if(isYes) score++; // chaque "Oui" vaut 1 point
-      currentQuestion++;
-      if (currentQuestion < questions.length) {
-        showQuestion();
-      } else {
-        showResult();
+    convertBtn.addEventListener('click', async ()=>{
+      const f = fileInput.files[0];
+      if(!f) return alert('Choisissez un fichier .pptx');
+      setStatus('Lecture du fichier...');
+      slidesContainer.innerHTML = '';
+      try{
+        const arrayBuffer = await f.arrayBuffer();
+        const zip = await JSZip.loadAsync(arrayBuffer);
+
+        // Récupère la liste des slides
+        const slideFiles = Object.keys(zip.files).filter(p => /^ppt\/slides\/slide\d+\.xml$/.test(p)).sort((a,b)=>{
+          const na = parseInt(a.match(/slide(\d+)\.xml/)[1]);
+          const nb = parseInt(b.match(/slide(\d+)\.xml/)[1]);
+          return na-nb;
+        });
+
+        if(slideFiles.length===0){ setStatus('Aucune slide trouvée dans ce .pptx'); return }
+
+        // Précharger médias (images)
+        const mediaFiles = Object.keys(zip.files).filter(p => /^ppt\/media\//.test(p));
+        const mediaBlobs = {};
+        await Promise.all(mediaFiles.map(async path=>{
+          const file = zip.files[path];
+          const blob = await file.async('blob');
+          mediaBlobs[path] = URL.createObjectURL(blob);
+        }));
+
+        setStatus(`Extraction de ${slideFiles.length} slides...`);
+
+        for(const slidePath of slideFiles){
+          const slideXmlText = await zip.files[slidePath].async('string');
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(slideXmlText,'application/xml');
+
+          // Texte : recherche de tous les éléments a:t (texte dans formes)
+          const textNodes = Array.from(doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/main','t'))
+                                .concat(Array.from(doc.getElementsByTagName('a:t')));
+
+          const texts = textNodes.map(n => n.textContent.trim()).filter(s=>s.length>0);
+
+          // Images : il faut lire la relation (r:embed) dans les picts
+          const relsPath = slidePath.replace('ppt/slides/','ppt/slides/_rels/') + '.rels';
+          let relsDoc = null;
+          const imageSrcs = [];
+          if(zip.files[relsPath]){
+            const relsText = await zip.files[relsPath].async('string');
+            relsDoc = parser.parseFromString(relsText,'application/xml');
+            // map of Id -> Target
+            const relElems = Array.from(relsDoc.getElementsByTagName('Relationship'))
+                             .concat(Array.from(relsDoc.getElementsByTagName('Relationship')));
+            const relMap = {};
+            relElems.forEach(r=>{
+              const id = r.getAttribute('Id') || r.getAttribute('Id');
+              const target = r.getAttribute('Target') || r.getAttribute('Target');
+              if(id && target) relMap[id] = target;
+            });
+
+            // In slide xml, find all <p:pic> with a:blip r:embed
+            const picElements = Array.from(doc.getElementsByTagName('p:pic'))
+                                .concat(Array.from(doc.getElementsByTagName('pic:pic')));
+            // fallback: find all 'blip' elements with embed
+            const blips = Array.from(doc.getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/main','blip'))
+                        .concat(Array.from(doc.getElementsByTagName('a:blip')));
+
+            const embedIds = new Set();
+            blips.forEach(b=>{
+              const embed = b.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','embed') || b.getAttribute('r:embed');
+              if(embed) embedIds.add(embed);
+            });
+
+            for(const id of embedIds){
+              let target = relMap[id];
+              if(target){
+                // target is relative path like "../media/image1.png" -> normalize to ppt/media/image1.png
+                target = target.replace(/^\.\./, 'ppt');
+                if(!target.startsWith('ppt/')) target = 'ppt/' + target.replace(/^\/+/, '');
+                if(mediaBlobs[target]) imageSrcs.push(mediaBlobs[target]);
+                else if(zip.files[target]){
+                  const blob = await zip.files[target].async('blob');
+                  imageSrcs.push(URL.createObjectURL(blob));
+                }
+              }
+            }
+          }
+
+          // Crée une carte de slide HTML
+          const s = document.createElement('article');
+          s.className = 'slide';
+          const h = document.createElement('h2');
+          h.textContent = slidePath.split('/').pop();
+          s.appendChild(h);
+
+          if(texts.length){
+            texts.forEach(t=>{
+              const p = document.createElement('p');
+              p.textContent = t;
+              s.appendChild(p);
+            });
+          } else {
+            const p = document.createElement('p'); p.textContent = '(aucun texte détecté)'; p.style.opacity=0.7; s.appendChild(p);
+          }
+
+          if(imageSrcs.length){
+            imageSrcs.forEach(src=>{
+              const img = document.createElement('img');
+              img.src = src; img.className = 'img-slide';
+              s.appendChild(img);
+            });
+          }
+
+          // bouton pour télécharger la slide en HTML séparée
+          const dlBtn = document.createElement('button');
+          dlBtn.textContent = 'Télécharger cette slide en HTML';
+          dlBtn.style.marginTop = '10px';
+          dlBtn.addEventListener('click', ()=>{
+            const blob = new Blob([`<html><head><meta charset=\"utf-8\"></head><body>${s.innerHTML}</body></html>`], {type:'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = slidePath.replace('/','_') + '.html';
+            a.click(); URL.revokeObjectURL(url);
+          });
+          s.appendChild(dlBtn);
+
+          slidesContainer.appendChild(s);
+        }
+
+        setStatus('Conversion terminée — voyez les slides ci‑dessous.');
+      }catch(err){
+        console.error(err);
+        setStatus('Erreur: ' + (err.message || err));
       }
-    }
-
-    function getGrade(percentage) {
-      if (percentage < 50) return "A";
-      if (percentage < 60) return "B";
-      if (percentage < 70) return "C";
-      if (percentage < 80) return "D";
-      if (percentage < 90) return "E";
-      return "F";
-    }
-
-    function showResult() {
-      document.getElementById("question-container").classList.add("hidden");
-      const resultDiv = document.getElementById("result");
-      resultDiv.classList.remove("hidden");
-
-      const percentage = (score / questions.length) * 100;
-      const grade = getGrade(percentage);
-
-      resultDiv.innerHTML = `
-        <h2>Résultats</h2>
-        <div class="grade ${grade}">${grade}</div>
-      `;
-    }
-
-    showQuestion();
+    });
   </script>
 </body>
 </html>

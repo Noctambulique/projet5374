@@ -1,101 +1,171 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Convertisseur ODP → HTML</title>
-<style>
-body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
-.controls { margin-bottom: 20px; }
-.slide { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-.img-slide { max-width: 100%; margin-top: 10px; }
-textarea { width: 100%; height: 200px; margin-top: 10px; }
-</style>
-</head>
-<body>
-<h1>Convertisseur ODP → HTML (client-side)</h1>
-<div class="controls">
-  <input type="file" id="file" accept=".odp">
-  <button id="convert">Convertir</button>
-</div>
-<div id="status"></div>
-<div id="slides"></div>
-<h2>Code HTML généré :</h2>
-<textarea id="htmlCode" readonly></textarea>
+#!/usr/bin/env python3
+"""
+export_odp_slides.py
 
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script>
-const fileInput = document.getElementById('file');
-const convertBtn = document.getElementById('convert');
-const slidesContainer = document.getElementById('slides');
-const status = document.getElementById('status');
-const htmlCode = document.getElementById('htmlCode');
+Export all slides from a .odp (OpenDocument Presentation) as individual image/pdf files.
+Uses LibreOffice (soffice) in headless mode or unoconv (if available).
 
-function setStatus(msg){ status.textContent = msg; }
+Usage:
+    python export_odp_slides.py input_file.odp --outdir slides --format png
 
-convertBtn.addEventListener('click', async ()=>{
-  const f = fileInput.files[0];
-  if(!f) return alert('Choisissez un fichier .odp');
-  setStatus('Lecture du fichier...');
-  slidesContainer.innerHTML = '';
-  htmlCode.value = '';
+Requirements:
+    - LibreOffice (soffice) installed and in PATH  OR
+    - unoconv installed and in PATH
+    - Python 3.7+
+"""
+import argparse
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+import glob
+import re
 
-  try{
-    const arrayBuffer = await f.arrayBuffer();
-    const zip = await JSZip.loadAsync(arrayBuffer);
+def find_converter():
+    """Return which converter is available: 'soffice', 'unoconv' or None."""
+    if shutil.which("soffice"):
+        return "soffice"
+    if shutil.which("unoconv"):
+        return "unoconv"
+    return None
 
-    if(!zip.files['content.xml']) return setStatus('Fichier invalide : content.xml manquant');
+def call_soffice_convert(input_path: Path, outdir: Path, target_format: str):
+    """
+    Call LibreOffice soffice to convert the presentation.
+    Example: soffice --headless --convert-to png --outdir outdir file.odp
+    """
+    cmd = [
+        "soffice",
+        "--headless",
+        "--convert-to", target_format,
+        "--outdir", str(outdir),
+        str(input_path)
+    ]
+    print("Exécution:", " ".join(cmd))
+    subprocess.run(cmd, check=True)
 
-    const contentXml = await zip.files['content.xml'].async('string');
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(contentXml,'application/xml');
+def call_unoconv_convert(input_path: Path, outdir: Path, target_format: str):
+    """
+    Call unoconv to convert.
+    Example: unoconv -f png -o outdir file.odp
+    """
+    cmd = [
+        "unoconv",
+        "-f", target_format,
+        "-o", str(outdir),
+        str(input_path)
+    ]
+    print("Exécution:", " ".join(cmd))
+    subprocess.run(cmd, check=True)
 
-    const slideNodes = Array.from(doc.getElementsByTagName('draw:page'));
-    setStatus(`Extraction de ${slideNodes.length} slides...`);
+def gather_generated_files(outdir: Path, base_name: str, target_exts):
+    """
+    List generated files in outdir that belong to the converted presentation.
+    We look for files containing base_name or starting with base_name.
+    """
+    files = []
+    # Find all files in outdir with matching extensions
+    for ext in target_exts:
+        pattern = str(outdir / f"{base_name}*{ext}")
+        found = glob.glob(pattern)
+        files.extend(found)
+    # If nothing found with base_name, add any matching extension (fallback)
+    if not files:
+        for ext in target_exts:
+            files.extend(glob.glob(str(outdir / f"*{ext}")))
+    # remove duplicates and sort deterministically
+    files = sorted(set(files), key=lambda p: natural_sort_key(Path(p).name))
+    return [Path(p) for p in files]
 
-    const allSlidesHTML = [];
+def natural_sort_key(s):
+    """Key for human-friendly sorting (numbers in filenames sorted numerically)."""
+    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
-    for(let i=0;i<slideNodes.length;i++){
-      const slideNode = slideNodes[i];
-      let slideHTML = `<article class=\"slide\">`;
+def rename_slides(files, outdir: Path, output_format: str, prefix="slide_"):
+    """
+    Rename/move files to standardized output names: slide_001.png, slide_002.png, ...
+    Returns list of produced file paths.
+    """
+    produced = []
+    digits = max(3, len(str(len(files))))
+    for i, f in enumerate(files, start=1):
+        new_name = f"{prefix}{i:0{digits}d}.{output_format}"
+        dest = outdir / new_name
+        # If target exists, overwrite
+        try:
+            f.replace(dest)
+        except Exception:
+            # fallback to copy if replace fails (permissions etc.)
+            import shutil
+            shutil.copy2(f, dest)
+            try:
+                f.unlink()
+            except Exception:
+                pass
+        produced.append(dest)
+    return produced
 
-      // Texte
-      const texts = Array.from(slideNode.getElementsByTagName('text:p')).map(n=>n.textContent.trim()).filter(t=>t.length>0);
-      if(texts.length){
-        texts.forEach(t=>{ slideHTML += `<p>${t}</p>`; });
-      } else {
-        slideHTML += `<p style=\"opacity:0.7\">(aucun texte détecté)</p>`;
-      }
+def main():
+    parser = argparse.ArgumentParser(description="Exporter toutes les slides d'un .odp individuellement.")
+    parser.add_argument("input", type=str, help="Fichier .odp à convertir")
+    parser.add_argument("--outdir", "-o", type=str, default="slides", help="Dossier de sortie")
+    parser.add_argument("--format", "-f", type=str, default="png", choices=["png","jpg","svg","pdf"],
+                        help="Format de sortie des slides (png/jpg/svg/pdf)")
+    parser.add_argument("--keep-original-names", action="store_true",
+                        help="Ne pas renommer les fichiers générés, laisser les noms originaux")
+    args = parser.parse_args()
 
-      // Images
-      const imgNodes = Array.from(slideNode.getElementsByTagName('draw:image'));
-      for(const imgNode of imgNodes){
-        const href = imgNode.getAttribute('xlink:href');
-        if(href && zip.files[href.replace(/^\//,'')]){
-          const blob = await zip.files[href.replace(/^\//,'')].async('blob');
-          const url = URL.createObjectURL(blob);
-          slideHTML += `<img src=\"${url}\" class=\"img-slide\">`;
-        }
-      }
+    input_path = Path(args.input).expanduser().resolve()
+    if not input_path.exists():
+        print(f"Fichier introuvable: {input_path}", file=sys.stderr)
+        sys.exit(2)
 
-      slideHTML += '</article>';
-      allSlidesHTML.push(slideHTML);
-    }
+    outdir = Path(args.outdir).expanduser().resolve()
+    outdir.mkdir(parents=True, exist_ok=True)
 
-    // Affiche toutes les slides
-    slidesContainer.innerHTML = allSlidesHTML.join('');
+    converter = find_converter()
+    if converter is None:
+        print("Aucun convertisseur trouvé. Installez LibreOffice (soffice) ou unoconv et réessayez.", file=sys.stderr)
+        sys.exit(3)
 
-    // Affiche le code HTML dans la textarea pour copier
-    const finalHTML = `<html><head><meta charset=\"utf-8\"></head><body>${allSlidesHTML.join('')}</body></html>`;
-    htmlCode.value = finalHTML;
+    target_format = args.format
+    print(f"Utilisation du convertisseur: {converter}")
+    try:
+        if converter == "soffice":
+            # For some versions specifying filter is helpful, but --convert-to <fmt> usually works.
+            call_soffice_convert(input_path, outdir, target_format)
+        else:
+            call_unoconv_convert(input_path, outdir, target_format)
+    except subprocess.CalledProcessError as e:
+        print("Erreur lors de la conversion :", e, file=sys.stderr)
+        sys.exit(4)
 
-    setStatus('Conversion terminée. Vous pouvez copier le code HTML ci-dessous.');
+    base_name = input_path.stem
+    # expected extensions
+    ext = target_format.lower()
+    target_exts = [f".{ext}"]
+    generated = gather_generated_files(outdir, base_name, target_exts)
 
-  }catch(err){
-    console.error(err);
-    setStatus('Erreur : ' + (err.message || err));
-  }
-});
-</script>
-</body>
-</html>
+    if not generated:
+        print("Aucune sortie trouvée après conversion. Vérifiez que le convertisseur a fonctionné correctement.", file=sys.stderr)
+        # list files in outdir for debugging
+        print("Contenu du dossier de sortie:", outdir)
+        for p in sorted(outdir.iterdir()):
+            print(" -", p.name)
+        sys.exit(5)
+
+    if args.keep_original_names:
+        print("Fichiers générés (conserver noms originaux):")
+        for p in generated:
+            print(" -", p.name)
+        print(f"Téléchargement terminé. Fichiers dans: {outdir}")
+        return
+
+    produced = rename_slides(generated, outdir, ext)
+    print("Export terminé. Fichiers produits:")
+    for p in produced:
+        print(" -", p.name)
+    print(f"Tous les slides sont disponibles dans: {outdir}")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Convertisseur Excel → Page HTML</title>
+  
+  <link rel="stylesheet" href="../../assets/styles/apps/logiciel/convertisseur-excel.css">
+</head>
+<body>
+  <h1>Convertisseur Excel → code HTML</h1>
+  <p class="small">Téléverse un fichier Excel (.xlsx, .xls) ou CSV. Choisis une feuille, puis génère le code HTML de la table ou une page HTML complète.</p>
+
+  <div class="controls">
+    <label>Fichier Excel (.xlsx/.xls/.csv)
+      <input id="file" type="file" accept=".xlsx,.xls,.csv" />
+    </label>
+
+    <label>Feuille
+      <select id="sheetSelect" disabled></select>
+    </label>
+
+    <label>Type de sortie
+      <select id="outType">
+        <option value="table">Fragment &lt;table&gt;</option>
+        <option value="page">Page HTML complète</option>
+      </select>
+    </label>
+
+    <label class="row">
+      <input id="includeStyles" type="checkbox" checked />
+      <span class="small">Inclure styles simples</span>
+    </label>
+
+    <button id="generate" class="btn">Générer</button>
+    <button id="copy" class="btn">Copier le code</button>
+    <button id="download" class="btn">Télécharger .html</button>
+  </div>
+
+  <div class="preview">
+    <div id="previewWrap">Aucune feuille chargée.</div>
+  </div>
+
+  <h3>Code HTML généré</h3>
+  <textarea id="htmlOut" placeholder="Le code HTML apparaitra ici..." readonly></textarea>
+
+  <footer>Basé sur <em>SheetJS</em> (librairie JS). Testé avec fichiers .xlsx/.csv.</footer>
+
+  <!-- SheetJS (utilisé pour lire Excel dans le navigateur) -->
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+
+  
+  <script src="../../assets/scripts/apps/logiciel/convertisseur-excel.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Convertisseur de sauts de ligne ↔ \n</title>
+  
+  <link rel="stylesheet" href="../../assets/styles/apps/logiciel/convertisseur-slash-n.css">
+</head>
+<body>
+  <h1>Convertisseur : retours à la ligne ↔ <code>\n</code></h1>
+  <p class="lead">Collez votre texte, puis utilisez <strong>Convertir</strong> pour transformer les retours à la ligne en <code>\n</code>, ou <strong>Inverser</strong> pour restaurer les retours à la ligne à partir d’un texte contenant des <code>\n</code>.</p>
+
+  <div>
+    <label class="small" for="input">Texte original ou à convertir</label>
+    <textarea id="input" placeholder="Collez ou tapez votre texte ici..."></textarea>
+    <div class="controls">
+      <button id="convert" class="primary">Convertir (→ \n)</button>
+      <button id="reverse">Inverser (← \n)</button>
+      <button id="clear">Effacer</button>
+      <button id="openWindow">Ouvrir dans une nouvelle fenêtre</button>
+    </div>
+  </div>
+
+  <div class="footer">Remarques :
+    <ul>
+      <li>Convertir remplace les retours simples par <code>\n</code> et les doubles par <code>\n \n</code>.</li>
+      <li>Inverser effectue l’opération inverse, restituant les retours de ligne réels.</li>
+      <li>Le bouton “Ouvrir dans une nouvelle fenêtre” affiche le texte converti dans une page dédiée, pour faciliter le copier/coller.</li>
+    </ul>
+  </div>
+
+  
+  <script src="../../assets/scripts/apps/logiciel/convertisseur-slash-n.js"></script>
+</body>
+</html>

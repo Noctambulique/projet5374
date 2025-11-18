@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Test de personnalité — « Boucle intérieure »</title>
+  
+  <link rel="stylesheet" href="../../assets/styles/apps/psy/nevrose.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <header>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <rect width="24" height="24" rx="6" fill="#111827"></rect>
+          <path d="M12 3v18M3 12h18" stroke="#7c3aed" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>
+          <h1>Test de personnalité — « Boucle intérieure »</h1>
+          <p class="lead">Mesure la tendance à <strong>refuser une part de soi</strong>, à tourner en boucle dans sa vie et à éprouver des difficultés à se transcender.</p>
+        </div>
+      </header>
+
+      <div>
+        <p class="hint">Instructions : Pour chaque affirmation, choisissez la réponse qui vous correspond le mieux (1 = Pas du tout, 5 = Tout à fait). Ce test est à visée introspective et vous permet d’en savoir un peu plus sur vous-même.</p>
+
+        <form id="testForm">
+          <div id="questions"></div>
+
+          <footer class="actions">
+            <button type="button" class="ghost" id="resetBtn">Réinitialiser</button>
+            <button type="button" class="primary" id="submitBtn">Voir le résultat</button>
+          </footer>
+        </form>
+
+        <div id="resultBox" class="result" hidden aria-live="polite"></div>
+
+      </div>
+    </div>
+  </div>
+
+  
+  <script src="../../assets/scripts/apps/psy/nevrose.js"></script>
+</body>
+</html>

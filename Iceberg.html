@@ -1,0 +1,42 @@
+<!doctype html>
+<meta charset="utf-8">
+
+
+<div id="wrap">
+  <div class="r" data-img="https://picsum.photos/800/600?1" data-text="Voici le texte 1"></div>
+  <div class="r" data-img="https://picsum.photos/800/600?2" data-text="Voici le texte 2"></div>
+  <div class="r" data-img="https://picsum.photos/800/600?3" data-text="Voici le texte 3"></div>
+</div>
+
+<div id="solo"></div>
+
+
+const wrap=document.getElementById('wrap');
+const solo=document.getElementById('solo');
+
+wrap.querySelectorAll('.r').forEach(r=>{
+  r.style.backgroundImage=`url(${r.dataset.img})`;
+  r.addEventListener('click',()=>showText(r.dataset.text));
+});
+
+function showText(txt){
+  document.body.style.opacity = 0;        // fade-out du contenu
+  setTimeout(()=>{
+    solo.textContent = txt;
+    solo.classList.add('show');           // affiche le texte seul
+  }, 500);
+}
+
+solo.addEventListener('click',()=>{        // retour à l'état initial
+  solo.classList.remove('show');
+  document.body.style.opacity = 1;
+});
+</script>
+const wrap=document.getElementById('wrap');
+wrap.querySelectorAll('.r').forEach(r=>{ r.style.backgroundImage=`url(${r.dataset.img})`; r.addEventListener('click',()=>openFull(r.dataset.img,r.dataset.text)) })
+function openFull(img,txt){
+  const ov=document.createElement('div'); ov.className='overlay';
+  ov.innerHTML=`<div class="card" style="background-image:url(${img})"><div class="txt">${txt}</div></div>`;
+  ov.addEventListener('click',()=>ov.remove()); document.body.appendChild(ov);
+}
+</script>

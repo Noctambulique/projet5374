@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Naos</title>
+
+  <link rel="stylesheet" href="assets/styles/pages/index.css">
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div><b>Position</b> <span id="pos">x:0, y:0</span></div>
+    <div style="margin-top:6px"><b>Map</b> <span id="mapName"></span></div>
+    <div style="margin-top:6px"><b>Lieu</b> <span id="locLabel"></span></div>
+  </div>
+
+  <div id="viewport">
+    <div id="map">
+      <img id="player" src="data:image/svg+xml;utf8,
+        <svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='%23ffcc00' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='10' r='3.2' /><path d='M12 2v3M12 21v-3M20 12h-3M7 12H4M17.5 6.5L15.5 8.5M8.5 15.5L6.5 17.5M17.5 17.5L15.5 15.5M8.5 8.5L6.5 6.5' /></svg>" alt="player" draggable="false">
+    </div>
+  </div>
+
+  <div id="modal"><img id="modalImg" src="" alt="preview"></div>
+</div>
+
+
+  <script type="module" src="assets/scripts/pages/index.js"></script>
+</body>
+</html>

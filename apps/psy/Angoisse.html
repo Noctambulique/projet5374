@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classement par intensité d'Angoisse</title>
+    
+  <link rel="stylesheet" href="../../assets/styles/apps/psy/angoisse.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Classez les questions par intensité d'angoisse provoquée</h1>
+        <p>Supprimez celles qui ne vous semblent pas pertinentes.</p>
+        <ul id="phrases" class="sortable-list">
+            <li draggable="true">Pourquoi suis-je là, si tout semble dépourvu de sens ? <button class="delete-btn">&times;</button></li>
+            <li draggable="true">Est-ce que j'existe, au-delà des rôles que je joue ? <button class="delete-btn">&times;</button></li>
+            <li draggable="true">Comment accepter que tout, y compris moi, ait une fin ? <button class="delete-btn">&times;</button></li>
+            <li draggable="true">Suis-je en train de vivre ma vie, ou celle que les autres attendent de moi ? <button class="delete-btn">&times;</button></li>
+            <li draggable="true">Comment choisir quand chaque décision ferme tant de portes ? <button class="delete-btn">&times;</button></li>
+            <li draggable="true">Si je n’arrive pas à faire ce qui compte, ai-je encore de la valeur ? <button class="delete-btn">&times;</button></li>
+            <li draggable="true">Est-il possible d’être aimé pour ce que je suis vraiment ? <button class="delete-btn">&times;</button></li>
+            <li draggable="true">À quoi bon continuer d'exister si je ne sers à rien ? <button class="delete-btn">&times;</button></li>
+            <li draggable="true">Qui peut réellement me comprendre quand personne ne vit ce que je ressens ? <button class="delete-btn">&times;</button></li>
+        </ul>
+        <button id="generate-result">Générer les résultats</button>
+        <textarea id="result" readonly placeholder="Votre message apparaîtra ici."></textarea>
+    </div>
+    
+  <script src="../../assets/scripts/apps/psy/angoisse.js"></script>
+</body>
+</html>

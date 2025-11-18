@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Échelle qualitative</title>
+
+  <link rel="stylesheet" href="assets/styles/pages/avenir.css">
+</head>
+<body>
+  <main class="container" aria-labelledby="title">
+    <h1 id="title" style="font-size:1rem; margin:0; text-align:center">Avenir probable</h1>
+
+    <div class="row" role="group" aria-label="Sélection qualitatives">
+      <div style="flex:1">
+        <!-- curseur discret -->
+        <input id="slider" type="range" min="0" max="3" step="1" value="2" aria-valuemin="0" aria-valuemax="3" aria-valuenow="2" aria-labelledby="currentLabel" />
+        <div class="labels" aria-hidden="true">
+          <span>très décevant</span>
+          <span>décevant</span>
+          <span>bien</span>
+          <span>merveilleux</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div id="currentLabel" class="current-label" aria-live="polite">Bien</div>
+      <div id="message" class="message" aria-live="polite">Tout est correct : expérience satisfaisante.</div>
+    </div>
+
+    <p class="sr-only" id="instructions">Déplacez le curseur pour choisir entre très décevant, décevant, bien et merveilleux.</p>
+  </main>
+
+
+  <script src="assets/scripts/pages/avenir.js"></script>
+</body>
+</html>

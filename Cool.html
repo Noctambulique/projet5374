@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rectangles cliquables — affiche texte</title>
+  
+  <link rel="stylesheet" href="assets/styles/pages/cool.css">
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="title">Rectangles cliquables — clique pour afficher un texte</h1>
+    <p>Les rectangles contiennent des images. En cliquant sur un rectangle, les images sont supprimées et le texte apparaît sur fond blanc. Utilisez <code>\n \n</code> dans le texte (deux backslash + n) pour sauter une ligne.</p>
+
+    <div class="controls">
+      <button id="resetBtn" class="btn btn--ghost">Réinitialiser les vignettes</button>
+    </div>
+
+    <div id="container" class="grid">
+      <!-- chaque carte contient une image et un attribut data-text qui contient le texte à afficher -->
+      <div class="card" data-text="Voici le texte du premier rectangle.\n \nIl contient deux paragraphes séparés par \"\\n \\n\".\n\nVous pouvez aussi écrire plusieurs lignes avec des \"\\n\" simples.">
+        <img src="https://picsum.photos/seed/1/600/400" alt="image 1">
+      </div>
+
+      <div class="card" data-text="Deuxième carte :\n \nExemple avec sauts de ligne.\n- Puce 1\n- Puce 2\n \nFin du texte.">
+        <img src="https://picsum.photos/seed/2/600/400" alt="image 2">
+      </div>
+
+      <div class="card" data-text="Troisième :\n \nUn long texte qui sera automatiquement mis en page et convertira les séquences \\n en sauts de ligne visuels.\n\nAmusez-vous !">
+        <img src="https://picsum.photos/seed/3/600/400" alt="image 3">
+      </div>
+
+      <div class="card" data-text="Carte 4\n \nTexte court.">
+        <img src="https://picsum.photos/seed/4/600/400" alt="image 4">
+      </div>
+    </div>
+  </div>
+
+  
+  <script src="assets/scripts/pages/cool.js"></script>
+</body>
+</html>

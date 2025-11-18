@@ -1,0 +1,70 @@
+body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      display: grid;
+      grid-template-columns: repeat(8, 100px);
+      gap: 2px;
+      justify-content: center;
+    }
+
+    .cell {
+      width: 100px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #bebff1;
+
+      border: 1px solid #ccc;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+body {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Pour éviter que ça soit tout centré verticalement */
+  padding: 20px;
+  background-color: #f0f0f0;
+  margin: 0;
+}
+
+#map {
+  display: grid;
+  grid-template-columns: repeat(8, 100px);
+  gap: 4px;
+  justify-content: center;
+}
+
+.cell {
+  width: 100px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #bebff1;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+    
+    .cell:hover {
+      background-color: #e0e0e0;
+    }
+    #infoBox {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      display: none;
+      max-width: 200px;
+    }

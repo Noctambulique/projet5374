@@ -1,0 +1,10 @@
+body{font-family:Arial;background:#f3f4f6;margin:0;padding:20px;color:#333}
+    h1{text-align:center;margin-bottom:20px}
+    .card{background:#fff;padding:15px;max-width:500px;margin:0 auto;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+    form{display:flex;gap:10px}
+    input{flex:1;padding:8px;border-radius:6px;border:1px solid #ccc}
+    button{padding:8px 12px;border-radius:6px;border:0;background:#2563eb;color:white;cursor:pointer}
+    button.secondary{background:#ccc;color:#333;width:100%;margin-top:10px}
+    .task{padding:8px;border-radius:6px;background:#e5e7eb;margin-top:8px;display:flex;justify-content:space-between;align-items:center}
+    .task.done{text-decoration:line-through;opacity:0.5}
+    .btn-sm{cursor:pointer;border:0;background:#d1d5db;padding:4px 6px;border-radius:4px;margin-left:4px}

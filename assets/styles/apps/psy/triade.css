@@ -1,0 +1,77 @@
+body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #333;
+      text-align: center;
+      padding: 40px;
+    }
+    .container {
+      max-width: 650px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+      animation: fadeIn 0.8s ease-in-out;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 25px;
+      color: #444;
+    }
+    .question {
+      font-size: 20px;
+      margin: 25px 0;
+      font-weight: 500;
+    }
+    button {
+      margin: 10px;
+      padding: 12px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      background: #667eea;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: #5a67d8;
+      transform: scale(1.05);
+    }
+    .hidden {
+      display: none;
+    }
+    #result h2 {
+      font-size: 26px;
+      margin-bottom: 15px;
+      color: #222;
+    }
+    #result p {
+      font-size: 18px;
+      margin: 8px 0;
+    }
+    .grade {
+      font-size: 40px;
+      font-weight: bold;
+      margin-top: 15px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      display: inline-block;
+      animation: pop 0.6s ease-in-out;
+    }
+    .A { background: #f56565; color: white; }
+    .B { background: #ed8936; color: white; }
+    .C { background: #ecc94b; color: #333; }
+    .D { background: #48bb78; color: white; }
+    .E { background: #4299e1; color: white; }
+    .F { background: #9f7aea; color: white; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pop {
+      0% { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }

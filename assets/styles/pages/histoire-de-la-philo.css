@@ -1,0 +1,37 @@
+/* S'assure que la hauteur remplit la fenêtre */
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #000;
+    }
+
+    /* Le conteneur principal est le scroll horizontal */
+    main {
+      height: 100vh;             /* images plein écran verticalement */
+      display: flex;             /* aligne les images horizontalement */
+      gap: 0;                    /* aucun écart entre images */
+      overflow-x: auto;          /* scroll horizontal activé */
+      overflow-y: hidden;        /* pas de scroll vertical */
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch; /* inertie iOS */
+      scroll-behavior: smooth;
+      touch-action: pan-x;       /* favorise le pan horizontal au doigt */
+    }
+
+    /* Style des images — chaque image occupe exactement un viewport width */
+    main img {
+      min-width: 100vw;          /* largeur = largeur de l'écran */
+      height: 100vh;             /* hauteur = hauteur de l'écran */
+      object-fit: cover;         /* couvre sans déformer */
+      flex-shrink: 0;            /* empêche le rétrécissement */
+      scroll-snap-align: start;  /* s'aligne au démarrage du viewport */
+      display: block;            /* supprime les petits espaces inline */
+      margin: 0;                 /* aucune marge */
+      user-select: none;         /* pas de sélection de texte */
+      -webkit-user-drag: none;   /* empêche drag image par le navigateur */
+      pointer-events: auto;      /* permet au container de capter le scroll tactile */
+    }
+
+    /* Optionnel : cacher la barre de défilement sur desktop (CSS moderne) */
+    main::-webkit-scrollbar { height: 10px; } /* visible si tu veux le styliser */
+    /* Pour masquer complètement : main { scrollbar-width: none; } main::-webkit-scrollbar { display: none; } */

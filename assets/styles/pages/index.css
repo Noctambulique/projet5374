@@ -1,0 +1,66 @@
+:root{
+    --ui-bg: rgba(0,0,0,0.6);
+    --ui-color: #fff;
+    --player-size: 36px;
+    --marker-size: 90px;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;}
+  #app{height:100vh;display:flex;flex-direction:column;}
+  #hud{
+    position:fixed; left:10px; top:10px; z-index:30;
+    background:var(--ui-bg); color:var(--ui-color); padding:8px 12px;border-radius:8px;
+    font-size:14px; box-shadow:0 4px 12px rgba(0,0,0,.4);
+    user-select:none;
+  }
+  #hud b{display:inline-block; min-width:80px;}
+  #viewport{
+    position:relative; flex:1; overflow:hidden; background:#222;
+  }
+  #viewport{
+    touch-action: none;
+}
+  #map{
+    position:absolute; left:0; top:0;
+    transform-origin:0 0;
+  }
+#player{
+  position:absolute;
+  width:var(--player-size); height:var(--player-size);
+  margin-left: calc(var(--player-size) / -2);
+  margin-top: calc(var(--player-size) / -2);
+  z-index:40;
+  cursor:grab;
+  transition: transform .03s linear;
+  display:none;
+  }
+  #player:active{cursor:grabbing;}
+.marker{
+  position:absolute;
+  width:var(--marker-size);
+  height:var(--marker-size);
+  margin-left: calc(var(--marker-size) / -2);
+  margin-top: calc(var(--marker-size) / -2);
+  z-index:35;
+  pointer-events:auto;
+  user-select:none;
+  object-fit: contain;
+}
+.label-marker{
+  position:absolute;
+  z-index:35;
+  pointer-events:auto;
+}
+  #modal{
+    display:none; position:fixed; inset:0; z-index:100; background: rgba(0,0,0,.7);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  #modal img{max-width:90vw; max-height:90vh; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,.6);}
+  #tips{
+    position:fixed; right:10px; top:10px; z-index:30;
+    background:var(--ui-bg); color:var(--ui-color); padding:8px 12px;border-radius:8px;
+    font-size:13px; max-width:220px;
+  }
+  @media (max-width:600px){
+    #hud {font-size:12px}
+    :root{--player-size:28px; --marker-size:28px;}
+  }
